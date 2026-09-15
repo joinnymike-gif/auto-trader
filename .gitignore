@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+*.app/
 rust/**/target/
 scripts/lighter-bridge/.vendor/
 __pycache__/

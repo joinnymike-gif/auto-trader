@@ -4,6 +4,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { createAgentLLMClient, LLMMessageClient } from './llm-client';
 import { spawn, spawnSync, ChildProcess, execSync, execFileSync } from 'child_process';
 import { randomUUID } from 'crypto';
 import { generateId as generateSecureId } from '../utils/id';
@@ -446,7 +447,7 @@ function limitItems<T extends { key?: string; value?: string }>(items: T[] | und
 }
 
 async function extractMemoryWithClaude(
-  client: Anthropic,
+  client: LLMMessageClient | Anthropic,
   text: string,
   maxItems: number
 ): Promise<MemoryExtractionResult | null> {
@@ -17084,12 +17085,7 @@ export async function createAgentManager(
   webhookToolProvider?: () => WebhookTool | undefined,
   executionService?: ExecutionServiceRef | null
 ): Promise<AgentManager> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY environment variable is required');
-  }
-
-  const client = new Anthropic({ apiKey });
+  const client = createAgentLLMClient();
   const skills = createSkillManager(config.agents.defaults.workspace);
   let credentials: CredentialsManager;
   try {

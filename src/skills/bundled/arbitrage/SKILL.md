@@ -37,6 +37,16 @@ Automated detection and monitoring of arbitrage opportunities across prediction 
 /arb config --interval 60                   # Set check interval (seconds)
 ```
 
+### Paper Trading (Zero Token Simulation)
+
+```
+/arb paper status                           # View virtual balance & arbitrage PnL
+/arb paper scan                             # Scan Polymarket & execute paper trades
+/arb paper test                             # Run end-to-end simulated Dutch Book test
+/arb paper positions                        # List active paper positions
+/arb paper reset                            # Reset virtual balance to $10,000
+```
+
 ### Manual Scanning
 
 ```

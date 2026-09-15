@@ -1170,9 +1170,21 @@ export function createDefaultCommands(): CommandDefinition[] {
     },
     {
       name: 'arbitrage',
-      description: 'Find simple arbitrage opportunities (YES + NO < $1)',
-      usage: '/arbitrage [query] [minEdge=1] [platforms=polymarket,kalshi] [mode=internal|cross|both] [limit=10]',
+      description: 'Arbitrage detection and simulation engine',
+      usage: '/arbitrage [paper|scan|status|check] [args]',
+      aliases: ['arb'],
       handler: async (args, ctx) => {
+        const trimmed = args.trim();
+        const firstWord = trimmed.split(/\s+/)[0]?.toLowerCase();
+
+        if (
+          !trimmed ||
+          ['paper', 'test', 'status', 'start', 'stop', 'help', 'positions', 'reset', 'check', 'opportunities', 'opps', 'compare', 'link', 'unlink', 'links', 'auto-match', 'automatch', 'stats'].includes(firstWord)
+        ) {
+          const { execute: executeArb } = await import('../skills/bundled/arbitrage/index');
+          return executeArb(trimmed || 'help');
+        }
+
         const parsed = parseArbitrageArgs(args);
         if (parsed.error) {
           return `Usage: /arbitrage [query] [minEdge=1] [platforms=polymarket,kalshi] [mode=internal|cross|both] [limit=10]\n${parsed.error}`;
@@ -2594,17 +2606,22 @@ export function createDefaultCommands(): CommandDefinition[] {
     {
       name: 'opportunity',
       description: 'Find arbitrage and edge opportunities across platforms',
-      usage: '/opportunity [scan|active|hft|linked|link|stats|pairs] [args]',
-      aliases: ['opp', 'arb', 'find'],
+      usage: '/opportunity [scan|active|hft|linked|link|stats|pairs|paper] [args]',
+      aliases: ['opp', 'find'],
       handler: async (args, ctx) => {
+        const parts = args.trim().split(/\s+/);
+        const subcommand = parts[0]?.toLowerCase() || 'scan';
+        const rest = parts.slice(1);
+
+        if (subcommand === 'paper') {
+          const { execute: executeArb } = await import('../skills/bundled/arbitrage/index');
+          return executeArb(`paper ${rest.join(' ')}`);
+        }
+
         const finder = ctx.opportunityFinder;
         if (!finder) {
           return 'Opportunity finder not initialized. Enable in config.';
         }
-
-        const parts = args.trim().split(/\s+/);
-        const subcommand = parts[0]?.toLowerCase() || 'scan';
-        const rest = parts.slice(1);
 
         switch (subcommand) {
           case 'scan': {
@@ -3143,6 +3160,7 @@ export function createDefaultCommands(): CommandDefinition[] {
               '  pairs                                  - Show platform pair performance',
               '  realtime [start|stop]                  - Real-time scanning',
               '  take <id>                              - Mark opportunity as taken',
+              '  paper [status|scan|test]               - Paper trading simulation',
               '',
               'Options:',
               '  minEdge=N      - Minimum edge % (default: 0.5)',

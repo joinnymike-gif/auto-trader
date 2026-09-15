@@ -3,6 +3,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { createAgentLLMClient, detectLLMProvider } from '../agents/llm-client';
 import { logger } from '../utils/logger';
 
 export type SummarizerFn = (text: string, maxTokens: number) => Promise<string>;
@@ -15,11 +16,17 @@ interface ClaudeSummarizerOptions {
 const DEFAULT_SUMMARY_MODEL = process.env.CLODDS_SUMMARY_MODEL || 'claude-3-5-haiku-20241022';
 
 export function createClaudeSummarizer(options: ClaudeSummarizerOptions = {}): SummarizerFn | undefined {
-  const apiKey = options.apiKey || process.env.ANTHROPIC_API_KEY;
+  const providerInfo = detectLLMProvider();
+  const apiKey = options.apiKey || providerInfo.apiKey;
   if (!apiKey) return undefined;
 
-  const client = new Anthropic({ apiKey });
-  const model = options.model || DEFAULT_SUMMARY_MODEL;
+  let client: any;
+  try {
+    client = createAgentLLMClient(options.apiKey ? { ANTHROPIC_API_KEY: options.apiKey } : undefined);
+  } catch {
+    return undefined;
+  }
+  const model = options.model || (providerInfo.provider === 'deepseek' ? providerInfo.model : DEFAULT_SUMMARY_MODEL);
 
   return async (text: string, maxTokens: number): Promise<string> => {
     const targetTokens = Math.max(128, Math.min(1200, Math.floor(maxTokens)));
@@ -43,8 +50,8 @@ export function createClaudeSummarizer(options: ClaudeSummarizerOptions = {}): S
       });
 
       const summary = response.content
-        .filter((b) => b.type === 'text')
-        .map((b) => (b as Anthropic.TextBlock).text)
+        .filter((b: any) => b.type === 'text')
+        .map((b: any) => (b as Anthropic.TextBlock).text)
         .join('\n')
         .trim();
 

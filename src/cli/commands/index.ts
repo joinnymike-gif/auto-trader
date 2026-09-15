@@ -10,7 +10,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync
 import { join } from 'path';
 import { homedir } from 'os';
 import { getHooksDir, loadHooksState, removeHookSourceState, setHookSourceEnabled, resolveHookStateKey, loadHookStateStore, saveHookStateStore } from '../../hooks';
-import { createDatabase } from '../../db';
+import { createDatabase, initDatabase } from '../../db';
 import { createMigrationRunner } from '../../db/migrations';
 import { execApprovals } from '../../permissions';
 import type { User } from '../../types';
@@ -255,7 +255,7 @@ export function createCronCommands(program: Command): void {
     .description('Manage scheduled cron jobs');
 
   const withDb = async <T,>(fn: (db: ReturnType<typeof createDatabase>) => T | Promise<T>) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     try {
       return await fn(db);
@@ -573,7 +573,7 @@ export function createUserCommands(program: Command): void {
     .description('Manage users and per-user settings');
 
   const withDb = async <T,>(fn: (db: ReturnType<typeof createDatabase>) => T | Promise<T>) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     try {
       return await fn(db);
@@ -819,7 +819,7 @@ export function createMemoryCommands(program: Command): void {
     .description('Manage memory');
 
   const withDb = async <T,>(fn: (db: ReturnType<typeof createDatabase>) => T | Promise<T>) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     try {
       return await fn(db);
@@ -1758,7 +1758,7 @@ export function createUsageCommands(program: Command): void {
     .description('View usage statistics');
 
   const withDb = async <T,>(fn: (db: ReturnType<typeof createDatabase>) => T | Promise<T>) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     try {
       return await fn(db);
@@ -2173,9 +2173,58 @@ export function createCredsCommands(program: Command): void {
 
       const results: Array<{ name: string; status: 'pass' | 'warn' | 'fail'; message: string; fix?: string }> = [];
 
+      // Test DeepSeek
+      const deepseekKey = process.env.DEEPSEEK_API_KEY;
+      if (platform === 'deepseek' || (!platform && deepseekKey)) {
+        if (!deepseekKey) {
+          results.push({
+            name: 'DeepSeek API',
+            status: 'fail',
+            message: 'DEEPSEEK_API_KEY not set',
+            fix: 'Get key from: https://platform.deepseek.com/api_keys',
+          });
+        } else {
+          try {
+            const baseUrl = (process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
+            const endpoint = baseUrl.endsWith('/v1') ? `${baseUrl}/models` : `${baseUrl}/v1/models`;
+            const response = await fetch(endpoint, {
+              headers: { Authorization: `Bearer ${deepseekKey}` },
+            });
+
+            if (response.ok) {
+              results.push({
+                name: 'DeepSeek API',
+                status: 'pass',
+                message: 'Key valid and working',
+              });
+            } else if (response.status === 401) {
+              results.push({
+                name: 'DeepSeek API',
+                status: 'fail',
+                message: 'Invalid API key',
+                fix: 'Check key at: https://platform.deepseek.com',
+              });
+            } else {
+              results.push({
+                name: 'DeepSeek API',
+                status: 'warn',
+                message: `Unexpected response: ${response.status}`,
+              });
+            }
+          } catch (e) {
+            results.push({
+              name: 'DeepSeek API',
+              status: 'warn',
+              message: `Network error: ${(e as Error).message}`,
+              fix: 'Check internet connection',
+            });
+          }
+        }
+      }
+
       // Test Anthropic
       const anthropicKey = process.env.ANTHROPIC_API_KEY;
-      if (!platform || platform === 'anthropic') {
+      if (platform === 'anthropic' || (!platform && (anthropicKey || !deepseekKey))) {
         if (!anthropicKey) {
           results.push({
             name: 'Anthropic API',
@@ -2600,7 +2649,7 @@ export function createLedgerCommands(program: Command): void {
     .description('Trade ledger - decision audit trail');
 
   const withDb = async <T,>(fn: (db: ReturnType<typeof createDatabase>) => T | Promise<T>) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     try {
       return await fn(db);
@@ -3415,7 +3464,7 @@ export function createDoctorCommand(program: Command): void {
       }
 
       try {
-        const db = createDatabase();
+        const db = await initDatabase();
         const runner = createMigrationRunner(db);
         runner.migrate();
         results.push({ name: 'Database', status: 'pass', message: 'SQLite OK, migrations applied' });
@@ -3426,10 +3475,28 @@ export function createDoctorCommand(program: Command): void {
       // ── 2. AI Providers ──────────────────────────────────────────────────
       console.log('Checking AI providers...');
 
+      const deepseekKey = process.env.DEEPSEEK_API_KEY;
+      if (deepseekKey) {
+        try {
+          const baseUrl = (process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, '');
+          const endpoint = baseUrl.endsWith('/v1') ? `${baseUrl}/models` : `${baseUrl}/v1/models`;
+          const r = await fetch(endpoint, {
+            headers: { Authorization: `Bearer ${deepseekKey}` },
+          });
+          if (r.ok) {
+            results.push({ name: 'DeepSeek API', status: 'pass', message: 'Key valid and working' });
+          } else {
+            results.push({ name: 'DeepSeek API', status: 'fail', message: `HTTP ${r.status}`, fix: 'Check key at platform.deepseek.com' });
+          }
+        } catch (e) {
+          results.push({ name: 'DeepSeek API', status: 'warn', message: `Network error: ${(e as Error).message}` });
+        }
+      }
+
       const anthropicKey = process.env.ANTHROPIC_API_KEY;
-      if (!anthropicKey) {
-        results.push({ name: 'Anthropic', status: 'fail', message: 'ANTHROPIC_API_KEY not set', fix: 'https://console.anthropic.com' });
-      } else {
+      if (!anthropicKey && !deepseekKey) {
+        results.push({ name: 'AI API Key', status: 'fail', message: 'Neither DEEPSEEK_API_KEY nor ANTHROPIC_API_KEY is set', fix: 'Set DEEPSEEK_API_KEY or ANTHROPIC_API_KEY in .env' });
+      } else if (anthropicKey) {
         try {
           const r = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',

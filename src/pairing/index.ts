@@ -221,8 +221,8 @@ export interface PairingService {
   /** Remove a user from paired list */
   removePairedUser(channel: string, userId: string): void;
 
-  /** List all pending requests for a channel */
-  listPendingRequests(channel: string): PairingRequest[];
+  /** List pending requests (optionally filtered by channel) */
+  listPendingRequests(channel?: string): PairingRequest[];
 
   /** List all paired users for a channel */
   listPairedUsers(channel: string): PairedUser[];
@@ -435,8 +435,12 @@ export function createPairingService(db: Database, configInput?: PairingConfig):
 
     async validateCode(code) {
       const upperCode = code.toUpperCase().trim();
-      if (upperCode.length !== CODE_LENGTH || !/^[A-Z2-9]+$/.test(upperCode)) return null;
-      const request = pendingRequests.get(upperCode);
+      if (upperCode.length !== CODE_LENGTH || !/^[A-Z0-9]+$/.test(upperCode)) return null;
+      let request = pendingRequests.get(upperCode);
+      if (!request) {
+        loadFromDb();
+        request = pendingRequests.get(upperCode);
+      }
 
       if (!request) return null;
       if (new Date() > request.expiresAt) {
@@ -456,7 +460,11 @@ export function createPairingService(db: Database, configInput?: PairingConfig):
 
     async approveRequest(channel, code) {
       const upperCode = code.toUpperCase().trim();
-      const request = pendingRequests.get(upperCode);
+      let request = pendingRequests.get(upperCode);
+      if (!request) {
+        loadFromDb();
+        request = pendingRequests.get(upperCode);
+      }
 
       if (!request || request.channel !== channel) return false;
 
@@ -471,7 +479,11 @@ export function createPairingService(db: Database, configInput?: PairingConfig):
 
     async rejectRequest(channel, code) {
       const upperCode = code.toUpperCase().trim();
-      const request = pendingRequests.get(upperCode);
+      let request = pendingRequests.get(upperCode);
+      if (!request) {
+        loadFromDb();
+        request = pendingRequests.get(upperCode);
+      }
 
       if (!request || request.channel !== channel) return false;
 
@@ -484,7 +496,31 @@ export function createPairingService(db: Database, configInput?: PairingConfig):
 
     isPaired(channel, userId) {
       const key = `${channel}:${userId}`;
-      return pairedUsers.has(key);
+      if (pairedUsers.has(key)) return true;
+
+      // Fallback: check SQLite database in case it was paired via another process/CLI
+      try {
+        const rows = db.query<PairedUserRow>(
+          'SELECT * FROM paired_users WHERE channel = ? AND userId = ?',
+          [channel, userId]
+        );
+        if (rows.length > 0) {
+          const row = rows[0];
+          pairedUsers.set(key, {
+            channel: row.channel,
+            userId: row.userId,
+            username: row.username,
+            pairedAt: new Date(row.pairedAt),
+            pairedBy: row.pairedBy as PairedUser['pairedBy'],
+            isOwner: Boolean(row.isOwner),
+          });
+          return true;
+        }
+      } catch (err) {
+        logger.debug({ err, channel, userId }, 'Error querying paired_users');
+      }
+
+      return false;
     },
 
     getTrustLevel(channel, userId): TrustLevel {
@@ -573,7 +609,7 @@ export function createPairingService(db: Database, configInput?: PairingConfig):
       const now = new Date();
 
       for (const req of pendingRequests.values()) {
-        if (req.channel === channel && now < req.expiresAt) {
+        if ((!channel || req.channel === channel) && now < req.expiresAt) {
           requests.push(req);
         }
       }

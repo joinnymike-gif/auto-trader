@@ -146,6 +146,8 @@ export interface HttpRateLimitConfig {
 export interface TelegramConfig extends ChannelConfig {
   botToken?: string;
   webhookUrl?: string;
+  dmPolicy?: 'open' | 'allowlist' | 'pairing' | 'disabled';
+  allowFrom?: string[];
 }
 
 export interface DiscordConfig extends ChannelConfig {
@@ -660,6 +662,18 @@ const ENV_MAPPINGS: Record<string, (cfg: CloddsConfig) => void> = {
     if (!cfg.channels) cfg.channels = {};
     if (!cfg.channels.telegram) cfg.channels.telegram = {};
     cfg.channels.telegram.botToken = process.env.TELEGRAM_BOT_TOKEN;
+  },
+  TELEGRAM_DM_POLICY: (cfg) => {
+    if (!cfg.channels) cfg.channels = {};
+    if (!cfg.channels.telegram) cfg.channels.telegram = {};
+    cfg.channels.telegram.dmPolicy = process.env.TELEGRAM_DM_POLICY as any;
+  },
+  TELEGRAM_ALLOW_FROM: (cfg) => {
+    if (!cfg.channels) cfg.channels = {};
+    if (!cfg.channels.telegram) cfg.channels.telegram = {};
+    cfg.channels.telegram.allowFrom = process.env.TELEGRAM_ALLOW_FROM
+      ? process.env.TELEGRAM_ALLOW_FROM.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
   },
   DISCORD_BOT_TOKEN: (cfg) => {
     if (!cfg.channels) cfg.channels = {};

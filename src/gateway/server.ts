@@ -20,11 +20,13 @@ import {
 } from '../utils/production';
 import type { TickStreamer } from '../services/tick-streamer';
 import type { FeatureEngineering } from '../services/feature-engineering';
+import type { PairingService } from '../pairing/index';
 
 export interface GatewayServer {
   start(): Promise<void>;
   stop(): Promise<void>;
   getWebSocketServer(): WebSocketServer | null;
+  setPairingService(service: PairingService | null): void;
   setChannelWebhookHandler(handler: ChannelWebhookHandler | null): void;
   setMarketIndexHandler(handler: MarketIndexHandler | null): void;
   setMarketIndexStatsHandler(handler: MarketIndexStatsHandler | null): void;
@@ -498,10 +500,14 @@ export function createServer(
 
   const ENV_VAR_SCHEMA = [
     {
-      category: 'Core',
+      category: 'AI Models (DeepSeek / Claude)',
       vars: [
-        { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API Key', secret: true, required: true, helpUrl: 'https://console.anthropic.com' },
-        { key: 'CLODDS_LOCALE', label: 'Language (en, es, zh, ja, ko...)', secret: false, required: false },
+        { key: 'DEEPSEEK_API_KEY', label: 'DeepSeek API Key (Recommended)', secret: true, required: false, helpUrl: 'https://platform.deepseek.com/api_keys' },
+        { key: 'DEEPSEEK_MODEL', label: 'DeepSeek Model (default: deepseek-chat)', secret: false, required: false },
+        { key: 'DEEPSEEK_BASE_URL', label: 'DeepSeek Base URL (default: https://api.deepseek.com)', secret: false, required: false },
+        { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API Key', secret: true, required: false, helpUrl: 'https://console.anthropic.com' },
+        { key: 'LLM_PROVIDER', label: 'Provider (auto / deepseek / anthropic)', secret: false, required: false },
+        { key: 'CLODDS_LOCALE', label: 'Language (zh, en, es, ja, ko...)', secret: false, required: false },
       ],
     },
     {
@@ -688,6 +694,36 @@ export function createServer(
       logger.error({ err }, 'Failed to save env vars');
       res.status(500).json({ error: 'Failed to write .env file' });
     }
+  });
+
+  let pairingService: PairingService | null = null;
+
+  // ── Pairing REST API (for CLI hot-sync) ──
+  app.post('/api/pairing/approve', express.json(), async (req, res) => {
+    const { channel, code } = req.body || {};
+    if (!channel || !code) {
+      res.status(400).json({ error: 'Missing channel or code' });
+      return;
+    }
+    if (!pairingService) {
+      res.status(503).json({ error: 'Pairing service not available' });
+      return;
+    }
+    const success = await pairingService.approveRequest(channel, code);
+    if (success) {
+      res.json({ success: true, message: `Approved ${code}` });
+    } else {
+      res.status(404).json({ success: false, error: 'Code not found or expired' });
+    }
+  });
+
+  app.get('/api/pairing/list', async (_req, res) => {
+    if (!pairingService) {
+      res.status(503).json({ error: 'Pairing service not available' });
+      return;
+    }
+    const requests = await pairingService.listPendingRequests();
+    res.json({ requests });
   });
 
   // ── Session REST API for webchat ──
@@ -2829,6 +2865,10 @@ export function createServer(
     },
     setOnSessionDelete(handler: ((key: string) => void) | null): void {
       onSessionDelete = handler;
+    },
+
+    setPairingService(service: PairingService | null): void {
+      pairingService = service;
     },
 
     setChatConnectionHandler(handler: ((ws: WebSocket, req: IncomingMessage) => void) | null): void {

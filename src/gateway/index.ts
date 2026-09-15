@@ -482,6 +482,7 @@ export async function createGateway(config: Config): Promise<AppGateway> {
     webhookManager,
     db
   );
+  httpGateway.setPairingService(pairing);
 
   let channels: Awaited<ReturnType<typeof createChannelManager>> | null = null;
   let triggerManager: import('../execution/trigger-orders').TriggerOrderManager | null = null;

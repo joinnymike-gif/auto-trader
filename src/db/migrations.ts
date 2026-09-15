@@ -1318,7 +1318,8 @@ const MIGRATIONS: Migration[] = [
         'SELECT id, context FROM sessions WHERE channel = ?',
         ['webchat']
       );
-      for (const row of rows) {
+      const safeRows = Array.isArray(rows) ? rows : [];
+      for (const row of safeRows) {
         try {
           const ctx = JSON.parse(row.context || '{}');
           const history = ctx.conversationHistory || [];

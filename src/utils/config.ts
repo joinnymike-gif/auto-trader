@@ -68,8 +68,10 @@ const DEFAULT_CONFIG: Config = {
     telegram: {
       enabled: !!process.env.TELEGRAM_BOT_TOKEN,
       botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-      dmPolicy: 'pairing',
-      allowFrom: [],
+      dmPolicy: (process.env.TELEGRAM_DM_POLICY as any) || 'pairing',
+      allowFrom: process.env.TELEGRAM_ALLOW_FROM
+        ? process.env.TELEGRAM_ALLOW_FROM.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
     },
     webchat: {
       enabled: true, // WebChat enabled by default

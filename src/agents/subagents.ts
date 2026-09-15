@@ -18,6 +18,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { logger } from '../utils/logger';
 import Anthropic from '@anthropic-ai/sdk';
+import { LLMMessageClient, createAgentLLMClient } from './llm-client';
 
 // =============================================================================
 // TYPES
@@ -464,8 +465,8 @@ export interface SubagentManager {
   getRegistry(): RunRegistry;
   /** Set result announcer callback */
   setAnnouncer(fn: (state: SubagentState) => Promise<void>): void;
-  /** Set Anthropic client */
-  setClient(client: Anthropic): void;
+  /** Set LLM client */
+  setClient(client: LLMMessageClient | Anthropic): void;
 }
 
 /**
@@ -474,7 +475,7 @@ export interface SubagentManager {
 export function createSubagentManager(): SubagentManager {
   const registry = createRunRegistry();
   let announcer: ((state: SubagentState) => Promise<void>) | null = null;
-  let anthropicClient: Anthropic | null = null;
+  let anthropicClient: LLMMessageClient | Anthropic | null = null;
 
   /**
    * Create initial state for a new run
@@ -538,19 +539,19 @@ export function createSubagentManager(): SubagentManager {
 
     // Ensure we have a client
     if (!anthropicClient) {
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (!apiKey) {
+      try {
+        anthropicClient = createAgentLLMClient();
+      } catch (err: any) {
         state.status = 'failed';
         state.error = {
-          message: 'ANTHROPIC_API_KEY not set',
+          message: err?.message || 'LLM API key not set',
           category: 'auth',
           retryable: false,
         };
         saveSubagentState(state);
-        run.events.emit('error', new Error('ANTHROPIC_API_KEY not set'));
+        run.events.emit('error', new Error(err?.message || 'LLM API key not set'));
         return state;
       }
-      anthropicClient = new Anthropic({ apiKey });
     }
 
     const model = state.config.model || 'claude-3-5-sonnet-20241022';

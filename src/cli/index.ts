@@ -23,7 +23,7 @@ import { join } from 'path';
 dotenvConfig({ path: join(homedir(), '.clodds', '.env') });
 dotenvConfig();
 import { Command } from 'commander';
-import { createDatabase } from '../db/index';
+import { createDatabase, initDatabase } from '../db/index';
 import { createMigrationRunner } from '../db/migrations';
 import { createPairingService } from '../pairing/index';
 import { createGateway } from '../gateway/index';
@@ -40,9 +40,11 @@ const program = new Command();
 installHttpClient();
 
 process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled promise rejection:', reason);
   logger.error({ reason }, 'Unhandled promise rejection');
 });
 process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
   logger.error({ error }, 'Uncaught exception');
   process.exit(1);
 });
@@ -57,22 +59,47 @@ program
   .command('start')
   .description('Start the Clodds gateway')
   .action(async () => {
-    logger.info('Starting Clodds...');
-    const config = await loadConfig();
-    configureHttpClient(config.http);
-    const gateway = await createGateway(config);
-    await gateway.start();
+    try {
+      logger.info('Starting Clodds...');
+      const config = await loadConfig();
+      configureHttpClient(config.http);
+      const gateway = await createGateway(config);
+      await gateway.start();
 
-    logger.info('Clodds is running!');
+      logger.info('Clodds is running!');
 
-    const shutdown = async () => {
-      logger.info('Shutting down...');
-      await gateway.stop();
-      process.exit(0);
-    };
+      const shutdown = async () => {
+        logger.info('Shutting down...');
+        await gateway.stop();
+        process.exit(0);
+      };
 
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+      process.on('SIGINT', shutdown);
+      process.on('SIGTERM', shutdown);
+    } catch (err: any) {
+      console.error('CRITICAL GATEWAY ERROR:', err);
+      if (err?.stack) console.error(err.stack);
+      process.exit(1);
+    }
+  });
+
+// GUI command
+program
+  .command('gui')
+  .description('Launch the native macOS GUI desktop app')
+  .action(async () => {
+    const { execSync, spawn } = await import('child_process');
+    const { existsSync } = await import('fs');
+    const { join } = await import('path');
+
+    const appPath = join(process.cwd(), 'Clodds.app');
+    if (!existsSync(appPath)) {
+      console.log('Building Clodds.app native bundle...');
+      execSync('bash scripts/build-mac-app.sh', { stdio: 'inherit' });
+    }
+
+    console.log('Launching Clodds GUI desktop application...');
+    spawn('open', [appPath], { stdio: 'ignore', detached: true }).unref();
   });
 
 // REPL command
@@ -103,7 +130,35 @@ pairing
   .command('list <channel>')
   .description('List pending pairing requests for a channel')
   .action(async (channel: string) => {
-    const db = createDatabase();
+    // Try querying running gateway first
+    try {
+      const res = await fetch('http://localhost:18789/api/pairing/list', {
+        signal: AbortSignal.timeout(1500),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { requests?: Array<{ code: string; channel: string; userId: string; username?: string; expiresAt: string }> };
+        const requests = (data.requests || []).filter((r) => r.channel === channel);
+        if (requests.length === 0) {
+          console.log(`No pending pairing requests for ${channel}`);
+          process.exit(0);
+        }
+        console.log(`\nPending pairing requests for ${channel}:\n`);
+        console.log('Code\t\tUser ID\t\t\tUsername\tExpires');
+        console.log('─'.repeat(70));
+        for (const req of requests) {
+          const expiresIn = Math.round((new Date(req.expiresAt).getTime() - Date.now()) / 1000 / 60);
+          console.log(
+            `${req.code}\t${req.userId.padEnd(20)}\t${(req.username || '-').padEnd(12)}\t${expiresIn}m`
+          );
+        }
+        console.log(`\nTo approve: clodds pairing approve ${channel} <CODE>`);
+        process.exit(0);
+      }
+    } catch {
+      // Gateway not running or unreachable, fallback to DB
+    }
+
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -127,20 +182,40 @@ pairing
 
     console.log(`\nTo approve: clodds pairing approve ${channel} <CODE>`);
     db.close();
+    process.exit(0);
   });
 
 pairing
   .command('approve <channel> <code>')
   .description('Approve a pairing request')
   .action(async (channel: string, code: string) => {
-    const db = createDatabase();
+    const upperCode = code.toUpperCase().trim();
+
+    // Try notifying running gateway first (so in-memory state is updated immediately)
+    try {
+      const res = await fetch('http://localhost:18789/api/pairing/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel, code: upperCode }),
+        signal: AbortSignal.timeout(2000),
+      });
+      if (res.ok) {
+        console.log(`\n✅ Approved pairing request via running gateway: ${upperCode}`);
+        console.log('User can now chat with Clodds via DM.');
+        process.exit(0);
+      }
+    } catch {
+      // Gateway not running or unreachable, fallback to DB
+    }
+
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
-    const success = await pairingService.approveRequest(channel, code);
+    const success = await pairingService.approveRequest(channel, upperCode);
 
     if (success) {
-      console.log(`\n✅ Approved pairing request: ${code.toUpperCase()}`);
+      console.log(`\n✅ Approved pairing request: ${upperCode}`);
       console.log('User can now chat with Clodds via DM.');
     } else {
       console.log(`\n❌ Failed to approve: Code not found or expired`);
@@ -148,13 +223,14 @@ pairing
     }
 
     db.close();
+    process.exit(success ? 0 : 1);
   });
 
 pairing
   .command('reject <channel> <code>')
   .description('Reject a pairing request')
   .action(async (channel: string, code: string) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -167,13 +243,14 @@ pairing
     }
 
     db.close();
+    process.exit(success ? 0 : 1);
   });
 
 pairing
   .command('users <channel>')
   .description('List paired users for a channel')
   .action(async (channel: string) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -181,6 +258,8 @@ pairing
 
     if (users.length === 0) {
       console.log(`No paired users for ${channel}`);
+      db.close();
+      process.exit(0);
       return;
     }
 
@@ -197,6 +276,7 @@ pairing
     }
 
     db.close();
+    process.exit(0);
   });
 
 pairing
@@ -204,7 +284,7 @@ pairing
   .option('-u, --username <username>', 'Username for the user')
   .description('Set a user as owner (can approve pairings via chat)')
   .action(async (channel: string, userId: string, options: { username?: string }) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -213,13 +293,14 @@ pairing
     console.log('This user can now approve pairing requests via chat commands.');
 
     db.close();
+    process.exit(0);
   });
 
 pairing
   .command('remove-owner <channel> <userId>')
   .description('Remove owner status from a user')
   .action(async (channel: string, userId: string) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -227,13 +308,14 @@ pairing
     console.log(`\nRemoved owner status from ${userId} for ${channel}`);
 
     db.close();
+    process.exit(0);
   });
 
 pairing
   .command('owners <channel>')
   .description('List all owners for a channel')
   .action(async (channel: string) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -242,6 +324,8 @@ pairing
     if (owners.length === 0) {
       console.log(`No owners for ${channel}`);
       console.log(`\nUse 'clodds pairing set-owner ${channel} <userId>' to add an owner.`);
+      db.close();
+      process.exit(0);
       return;
     }
 
@@ -251,6 +335,7 @@ pairing
     }
 
     db.close();
+    process.exit(0);
   });
 
 pairing
@@ -258,7 +343,7 @@ pairing
   .option('-u, --username <username>', 'Username for the user')
   .description('Manually add a user to the paired list')
   .action(async (channel: string, userId: string, options: { username?: string }) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -266,13 +351,14 @@ pairing
     console.log(`\nAdded user ${userId} to ${channel} paired list`);
 
     db.close();
+    process.exit(0);
   });
 
 pairing
   .command('remove <channel> <userId>')
   .description('Remove a user from the paired list')
   .action(async (channel: string, userId: string) => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 
@@ -280,6 +366,7 @@ pairing
     console.log(`\nRemoved user ${userId} from ${channel} paired list`);
 
     db.close();
+    process.exit(0);
   });
 
 
@@ -292,24 +379,19 @@ program
   .option('--port <port>', 'Override gateway port')
   .action(async (options: { host: string; scheme: string; port?: string }) => {
     const config = await loadConfig();
-    const port = options.port ? (Number.parseInt(options.port, 10) || 18789) : (config.gateway?.port ?? 18789);
+    const port = options.port || config.gateway?.port || 18789;
     const host = options.host;
     const scheme = options.scheme;
-    const portSuffix = port === 80 || port === 443 ? '' : `:${port}`;
-    const baseUrl = `${scheme}://${host}${portSuffix}`;
 
-    console.log('\nWebhook Endpoints\n');
-    console.log(`Base URL: ${baseUrl}\n`);
-
-    console.log('Channel webhooks:');
-    console.log(`- Teams: ${baseUrl}/channels/teams`);
-    console.log(`- Google Chat: ${baseUrl}/channels/googlechat`);
-    console.log(`- LINE: ${baseUrl}/channels/line`);
+    console.log('\nWebhook Endpoints:\n');
+    console.log(`  Telegram:  ${scheme}://${host}:${port}/webhooks/telegram`);
+    console.log(`  Discord:   ${scheme}://${host}:${port}/webhooks/discord`);
+    console.log(`  Slack:     ${scheme}://${host}:${port}/webhooks/slack`);
+    console.log(`  Line:      ${scheme}://${host}:${port}/webhooks/line`);
+    console.log(`  Teams:     ${scheme}://${host}:${port}/webhooks/teams`);
+    console.log(`  Twilio:    ${scheme}://${host}:${port}/webhooks/twilio`);
+    console.log(`  WhatsApp:  ${scheme}://${host}:${port}/webhooks/whatsapp`);
     console.log('');
-
-    console.log('Automation webhooks:');
-    console.log(`- Generic: ${baseUrl}/webhook`);
-    console.log(`- By ID: ${baseUrl}/webhook/:id`);
   });
 
 // Status command
@@ -317,7 +399,7 @@ program
   .command('status')
   .description('Show Clodds status')
   .action(async () => {
-    const db = createDatabase();
+    const db = await initDatabase();
     createMigrationRunner(db).migrate();
     const pairingService = createPairingService(db);
 

@@ -90,7 +90,7 @@ export async function createTelegramChannel(
    */
   function isUserAllowed(userId: string): boolean {
     // Static allowlist always allowed
-    if (staticAllowlist.has(userId)) return true;
+    if (staticAllowlist.has(userId) || staticAllowlist.has('*')) return true;
 
     // Check pairing service
     if (pairing?.isPaired('telegram', userId)) return true;
@@ -356,8 +356,8 @@ export async function createTelegramChannel(
                     `🔐 *Pairing Required*\n\n` +
                       `Your pairing code: \`${code}\`\n\n` +
                       `To complete pairing, either:\n` +
-                      `1. Run \`clodds pairing approve telegram ${code}\` on your computer\n` +
-                      `2. Or ask the bot owner to approve your code\n\n` +
+                      `1. Simply send this code \`${code}\` in this chat\n` +
+                      `2. Or run \`clodds pairing approve telegram ${code}\` on your computer\n\n` +
                       `Code expires in 1 hour.`,
                     { parse_mode: 'Markdown' }
                   )

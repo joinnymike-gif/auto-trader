@@ -81,8 +81,17 @@ export async function runDoctor(): Promise<CheckResult[]> {
   }
 
   // 3. API key check
+  const deepseekKey = process.env.DEEPSEEK_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  if (anthropicKey) {
+
+  if (deepseekKey) {
+    const masked = deepseekKey.slice(0, 8) + '...' + deepseekKey.slice(-4);
+    results.push({
+      name: 'DeepSeek API key',
+      status: 'pass',
+      message: `Set (${masked})`,
+    });
+  } else if (anthropicKey) {
     const masked = anthropicKey.slice(0, 10) + '...' + anthropicKey.slice(-4);
     results.push({
       name: 'Anthropic API key',
@@ -91,10 +100,10 @@ export async function runDoctor(): Promise<CheckResult[]> {
     });
   } else {
     results.push({
-      name: 'Anthropic API key',
+      name: 'AI API key (DeepSeek / Anthropic)',
       status: 'fail',
       message: 'Not set',
-      fix: 'Set ANTHROPIC_API_KEY environment variable',
+      fix: 'Set DEEPSEEK_API_KEY or ANTHROPIC_API_KEY in .env',
     });
   }
 

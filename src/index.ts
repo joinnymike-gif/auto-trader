@@ -114,11 +114,11 @@ function validateStartupRequirements(): void {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Check for Anthropic API key (required for AI functionality)
-  if (!process.env.ANTHROPIC_API_KEY) {
+  // Check for AI API key (Anthropic or DeepSeek required for AI functionality)
+  if (!process.env.ANTHROPIC_API_KEY && !process.env.DEEPSEEK_API_KEY) {
     errors.push(
-      'ANTHROPIC_API_KEY is not set. The AI agent will not function.\n' +
-      '  Fix: Add ANTHROPIC_API_KEY=sk-ant-... to your .env file\n' +
+      'No AI API key is set (DEEPSEEK_API_KEY or ANTHROPIC_API_KEY). The AI agent will not function.\n' +
+      '  Fix: Add DEEPSEEK_API_KEY=sk-... or ANTHROPIC_API_KEY=sk-ant-... to your .env file\n' +
       '  Or run: clodds onboard'
     );
   }
