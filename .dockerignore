@@ -15,6 +15,15 @@ apps
 *.gif
 *.png
 *.jpg
+# WebChat 静态资源必须进镜像（gateway 从 public/webchat 提供服务）
+!public/**
+# 镜像用不到的东西
+Clodds.app
+desktop
+docs
+assets
+tests
+rust/*/target
 workspace
 .clodds
 .vercel

@@ -243,7 +243,7 @@ OTEL_SAMPLE_RATE=1.0
 
 ## Deployment Options
 
-### 1. npm Install (Recommended)
+### 1. npm Install
 
 ```bash
 npm install -g clodds
@@ -274,68 +274,49 @@ npm start
 # Or: node dist/index.js
 ```
 
-### 3. Docker (Single Container)
+### 3. Docker (recommended)
 
-**Build:**
+**One command** — installs Docker if missing (Linux), prepares `.env`, generates a
+`WEBCHAT_TOKEN`, then builds and starts the container:
+
 ```bash
-docker build -t clodds .
+bash scripts/docker-install.sh
 ```
 
-**Run:**
+**Or drive Compose directly** (the `docker-compose.yml` in the repo root is the
+source of truth — credentials come from `.env` via `env_file`):
+
 ```bash
-docker run --rm \
-  -p 18789:18789 \
-  -e ANTHROPIC_API_KEY=sk-ant-... \
-  -e TELEGRAM_BOT_TOKEN=... \
-  -e WEBCHAT_TOKEN=... \
-  -v clodds_data:/data \
-  clodds
+cp .env.example .env    # set DEEPSEEK_API_KEY or ANTHROPIC_API_KEY, and WEBCHAT_TOKEN
+docker compose up -d --build
 ```
 
-The container sets `CLODDS_STATE_DIR=/data`, so:
+The container publishes `127.0.0.1:18789` only, so nothing is reachable from the
+internet until you put it behind a reverse proxy or an SSH tunnel (see
+[VPS_SECURITY.md](./VPS_SECURITY.md)). To expose it deliberately, change the
+`ports:` mapping to `18789:18789`.
+
+It runs as the non-root `node` user and sets `CLODDS_STATE_DIR=/data`, so:
 - Database: `/data/clodds.db`
 - Backups: `/data/backups`
+- Workspace: `/data/workspace`
 
-### 4. Docker Compose
+`/data` is the named volume `clodds_data` — it survives rebuilds. The image has
+its own `HEALTHCHECK`, visible as the container's health status in `docker ps`.
 
-**docker-compose.yml:**
-```yaml
-version: '3.8'
-
-services:
-  clodds:
-    build: .
-    ports:
-      - "18789:18789"
-    environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - WEBCHAT_TOKEN=${WEBCHAT_TOKEN}
-    volumes:
-      - clodds_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:18789/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-volumes:
-  clodds_data:
+**Logs / stop:**
+```bash
+docker compose logs -f
+docker compose down          # add -v to also delete the data volume
 ```
 
-**Start:**
+**Update** (the image is built locally, so there is nothing to `pull`):
 ```bash
+git pull
 docker compose up -d --build
 ```
 
-**Update:**
-```bash
-docker compose pull
-docker compose up -d --build
-```
-
-### 5. Systemd Service (Linux)
+### 4. Systemd Service (Linux)
 
 Create `/etc/systemd/system/clodds.service`:
 
@@ -393,7 +374,7 @@ sudo systemctl status clodds
 sudo journalctl -u clodds -f
 ```
 
-### 6. Vercel (Serverless)
+### 5. Vercel (Serverless)
 
 Clodds includes a Cloudflare Worker variant for serverless deployment. See `apps/clodds-worker/`.
 

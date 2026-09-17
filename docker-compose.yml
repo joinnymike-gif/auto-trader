@@ -1,8 +1,11 @@
 services:
   clodds:
     build: .
+    container_name: clodds
+    # 默认只监听本机回环地址：公网访问请用 HTTPS 反向代理或 SSH 隧道（见 README）
+    # Bound to loopback by default: expose it through an HTTPS reverse proxy or an SSH tunnel
     ports:
-      - "18789:18789"
+      - "127.0.0.1:18789:18789"
     env_file:
       - .env
     environment:

@@ -47,11 +47,34 @@ This project is a fork of [alsk1992/CloddsBot](https://github.com/alsk1992/Clodd
 | **预测市场数学套利扫描器**<br>Dutch Book arbitrage scanner | 扫描 Polymarket 二元市场中 “YES 卖价 + NO 卖价 < $1” 的无风险定价错误，逐档计算订单簿深度与 VWAP。**不消耗任何 LLM Token**，无需 API Key。<br>Scans Polymarket binary markets for “YES ask + NO ask < $1” mispricings, walking orderbook depth with VWAP. **Zero LLM tokens**, no API key required. |
 | **纸面套利执行引擎**<br>Paper arbitrage executor | 基于本地 SQLite 的 $10,000 虚拟账户，记录双腿持仓、锁定利润并模拟结算。<br>SQLite-backed $10,000 virtual account that records both legs, locks in profit and simulates settlement. |
 | **7×24 自动扫描**<br>24/7 auto scanning | 通过命令行（`npm run arb:paper -- --watch`）或聊天命令（`/arb paper auto start`）持续扫描并自动纸面下单。<br>Continuous scanning with automatic paper execution via CLI (`npm run arb:paper -- --watch`) or chat (`/arb paper auto start`). |
+| **Docker 一键部署**<br>One-command Docker deploy | `bash scripts/docker-install.sh`：自动安装 Docker、准备 `.env`、生成 `WEBCHAT_TOKEN`、构建并启动容器，VPS 上无需 Node.js 环境。<br>Installs Docker, prepares `.env`, generates a `WEBCHAT_TOKEN`, builds and starts the container — no Node.js needed on the VPS. |
 | **诊断与修复**<br>Doctor & fixes | `clodds doctor` 可校验 DeepSeek Key；修复 Telegram 配对授权与热重载同步问题。<br>`clodds doctor` validates the DeepSeek key; fixes Telegram pairing authorization and hot-reload sync. |
 
 ---
 
 ## 🚀 快速开始 / Quick Start
+
+### 方式一：Docker 一键部署（推荐）/ Option A: one-command Docker (recommended)
+
+主机上只需要 Docker，不用装 Node.js。脚本会自动装 Docker（Linux，缺失时）、准备 `.env`、生成 `WEBCHAT_TOKEN`，然后构建并启动容器。
+Only Docker is needed on the host — no Node.js. The script installs Docker if missing (Linux), prepares `.env`, generates a `WEBCHAT_TOKEN`, then builds and starts the container.
+
+```bash
+git clone https://github.com/joinnymike-gif/auto-trader.git
+cd auto-trader
+bash scripts/docker-install.sh
+```
+
+启动后 WebChat 在 `http://127.0.0.1:18789/webchat/`。数据（SQLite、备份、workspace）保存在 `clodds_data` 数据卷的 `/data` 下，容器默认只监听回环地址。
+WebChat is then at `http://127.0.0.1:18789/webchat/`. Data (SQLite, backups, workspace) lives under `/data` in the `clodds_data` volume; the container listens on loopback only.
+
+| 命令 / Command | 作用 / Purpose |
+|---|---|
+| `docker compose logs -f` | 查看日志 / follow logs |
+| `docker compose down` | 停止 / stop |
+| `git pull && docker compose up -d --build` | 更新 / update |
+
+### 方式二：源码安装 / Option B: from source
 
 **环境要求 / Requirements:** Node.js ≥ 22；macOS GUI 另需 Xcode Command Line Tools（`xcode-select --install`）。
 Node.js ≥ 22; the macOS GUI additionally needs Xcode Command Line Tools.
@@ -124,13 +147,26 @@ The build script uses `swiftc`, `sips`, `iconutil` and ad-hoc codesigning; the g
 网关跑在 VPS 上 7×24 运行，Mac 上的 Clodds.app 只负责连接和显示。
 Run the gateway 24/7 on a VPS and use Clodds.app on your Mac as the client.
 
-**1. 在 VPS 上启动网关 / Start the gateway on the VPS**（Linux + Node.js ≥ 22；systemd / Docker 部署见 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)）
+**1. 在 VPS 上启动网关 / Start the gateway on the VPS**（只需要 Docker / Docker is all you need）
 
 ```bash
 git clone https://github.com/joinnymike-gif/auto-trader.git && cd auto-trader
-npm install && cp .env.example .env   # 填 LLM Key 并设置 WEBCHAT_TOKEN / set an LLM key and WEBCHAT_TOKEN
+bash scripts/docker-install.sh
+```
+
+脚本会装好 Docker、准备 `.env`、生成 `WEBCHAT_TOKEN`，并以 `restart: unless-stopped` 常驻运行；容器默认只监听 `127.0.0.1:18789`，不会直接暴露到公网。
+The script installs Docker, prepares `.env`, generates a `WEBCHAT_TOKEN` and keeps the container running with `restart: unless-stopped`; it binds to `127.0.0.1:18789` only, so nothing is exposed publicly by default.
+
+<details>
+<summary>不用 Docker（npm + systemd）/ Without Docker (npm + systemd)</summary>
+
+```bash
+npm install && cp .env.example .env   # 填 LLM Key 并设置 WEBCHAT_TOKEN
 npm run build && npm start
 ```
+
+systemd 单元文件见 / systemd unit file: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
+</details>
 
 **2. 选择访问方式（任选其一）/ Choose how to reach it (pick one)**
 
@@ -314,6 +350,7 @@ docker compose up --build
 | [scripts/paper-arbitrage.ts](./scripts/paper-arbitrage.ts) | 套利命令行 / arbitrage CLI runner |
 | [desktop/macos/main.swift](./desktop/macos/main.swift) | macOS 原生应用 / native macOS app |
 | [scripts/build-mac-app.sh](./scripts/build-mac-app.sh) | App 构建脚本 / app build script |
+| [scripts/docker-install.sh](./scripts/docker-install.sh) · [Dockerfile](./Dockerfile) · [docker-compose.yml](./docker-compose.yml) | Docker 一键部署 / one-command Docker deploy |
 | [tests/unit/deepseek-adapter.test.ts](./tests/unit/deepseek-adapter.test.ts)、[tests/unit/prediction-arbitrage.test.ts](./tests/unit/prediction-arbitrage.test.ts) | 对应单元测试 / unit tests |
 
 ---
