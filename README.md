@@ -1,642 +1,339 @@
 <p align="center">
-  <img src="https://cloddsbot.com/logo.png" alt="Clodds Logo" width="280">
+  <img src="./assets/logo.png" alt="Clodds Logo" width="240">
+</p>
+
+<h1 align="center">auto-trader (Clodds)</h1>
+
+<p align="center">
+  <strong>自托管的 AI 交易终端：预测市场 · 加密货币 · 永续合约</strong><br>
+  <strong>Self-hosted AI trading terminal for prediction markets, crypto & perpetual futures</strong>
 </p>
 
 <p align="center">
-  <strong>AI-powered trading terminal for prediction markets, crypto & futures</strong>
-  <br>
-  <sub>Claude + Odds = Clodds</sub>
-</p>
-
-<p align="center">
-  <strong>Clodds CA:</strong> <code>2puc76ehVHyPXhZmDprtP2phDSFE4kzZKDT4JgAWpump</code>
-</p>
-
-<p align="center">
-  <a href="https://www.npmjs.com/package/clodds"><img src="https://img.shields.io/npm/v/clodds?color=blue" alt="npm version"></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen" alt="Node.js">
   <img src="https://img.shields.io/badge/typescript-5.3-blue" alt="TypeScript">
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT License"></a>
-  <img src="https://img.shields.io/badge/skills-119%2B-purple" alt="119+ Skills">
-  <img src="https://img.shields.io/badge/markets-1000%2B-orange" alt="1000+ Markets">
-  <img src="https://img.shields.io/badge/Colosseum-Agent%20Hackathon-blueviolet" alt="Built for Colosseum Hackathon">
-  <img src="https://img.shields.io/badge/clones%2F14d-10.7k-brightgreen" alt="10.7k clones in 14 days">
+  <img src="https://img.shields.io/badge/LLM-DeepSeek%20%7C%20Claude-8A2BE2" alt="DeepSeek | Claude">
+  <img src="https://img.shields.io/badge/macOS-native%20GUI-black" alt="macOS GUI">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT"></a>
 </p>
 
 <p align="center">
-  <img src="./assets/screenshots/clones-14d.jpeg" alt="10,746 Git clones in last 14 days" width="520">
-</p>
-
-<p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#webchat">WebChat</a> •
-  <a href="#everything-we-built">Features</a> •
-  <a href="#channels">Channels</a> •
-  <a href="#prediction-markets-10">Markets</a> •
-  <a href="#token-launch">Launch</a> •
-  <a href="#agent-forum">Forum</a> •
-  <a href="#documentation">Docs</a>
+  <a href="#-本-fork-新增功能--whats-new-in-this-fork">新增功能 / What's New</a> •
+  <a href="#-快速开始--quick-start">快速开始 / Quick Start</a> •
+  <a href="#-预测市场纸面套利--paper-arbitrage">纸面套利 / Paper Arbitrage</a> •
+  <a href="#-功能总览--feature-overview">功能总览 / Features</a> •
+  <a href="#-文档--documentation">文档 / Docs</a>
 </p>
 
 ---
 
-**Clodds** is a personal AI trading terminal for prediction markets, crypto spot, perpetual futures with leverage, **token launches**, and **Bittensor subnet mining**. Run it on your own machine, chat via any of **21 messaging platforms**, trade across **10 prediction markets + 7 futures exchanges** (including on-chain Solana perps via Percolator), with full Solana integration (Jupiter, Pump.fun, Raydium, Orca, Bags.fm) and EVM chains (Base, ETH, Arbitrum, Optimism, Polygon via Uniswap V3, 1inch, Virtuals Protocol), mine TAO on Bittensor, and manage your portfolio — all through natural conversation.
+本项目基于开源项目 [alsk1992/CloddsBot](https://github.com/alsk1992/CloddsBot)（Clodds = Claude + Odds）二次开发。它是一个运行在你自己机器上的 AI 交易终端：通过 WebChat、Telegram、Discord 等聊天渠道，用自然语言查询行情、分析套利、管理仓位并执行交易。
 
-Powered by Claude with 118+ trading strategies, whale tracking, arbitrage detection, copy trading, and DCA bots.
+This project is a fork of [alsk1992/CloddsBot](https://github.com/alsk1992/CloddsBot) (Clodds = Claude + Odds). It is an AI trading terminal that runs on your own machine: chat through WebChat, Telegram, Discord and more to query markets, analyze arbitrage, manage positions and execute trades in natural language.
 
-> 🏗️ **Built for [Colosseum Agent Hackathon](https://colosseum.com) on Solana** — Developed in 12 days as a fully-featured autonomous trading agent.
+> [!WARNING]
+> 交易有风险。本项目不构成任何投资建议。实盘前请务必先用纸面交易（paper trading）和 dry-run 模式验证。
+>
+> Trading involves risk. Nothing here is financial advice. Validate with paper trading and dry-run mode before going live.
 
 ---
 
-## Quick Start
+## ✨ 本 Fork 新增功能 / What's New in This Fork
+
+| 功能 / Feature | 说明 / Description |
+|---|---|
+| **DeepSeek LLM 接入**<br>DeepSeek LLM support | 新增 OpenAI 兼容适配器，把 Anthropic Messages 接口（含流式 SSE 与 tool calling）转换为 DeepSeek Chat Completions，整个 Agent 系统可直接跑在 DeepSeek 上。<br>An OpenAI-compatible adapter translates the Anthropic Messages interface (incl. SSE streaming and tool calls) to DeepSeek Chat Completions, so the whole agent stack runs on DeepSeek. |
+| **macOS 原生桌面应用**<br>Native macOS GUI | Swift + WKWebView 编写的 `Clodds.app`：自动启动本机网关，或连接远程 VPS 上的网关；菜单栏常驻、一键诊断与重启。<br>`Clodds.app` built with Swift + WKWebView: starts the local gateway or connects to one on a remote VPS; lives in the menu bar, one-click Doctor and restart. |
+| **预测市场数学套利扫描器**<br>Dutch Book arbitrage scanner | 扫描 Polymarket 二元市场中 “YES 卖价 + NO 卖价 < $1” 的无风险定价错误，逐档计算订单簿深度与 VWAP。**不消耗任何 LLM Token**，无需 API Key。<br>Scans Polymarket binary markets for “YES ask + NO ask < $1” mispricings, walking orderbook depth with VWAP. **Zero LLM tokens**, no API key required. |
+| **纸面套利执行引擎**<br>Paper arbitrage executor | 基于本地 SQLite 的 $10,000 虚拟账户，记录双腿持仓、锁定利润并模拟结算。<br>SQLite-backed $10,000 virtual account that records both legs, locks in profit and simulates settlement. |
+| **7×24 自动扫描**<br>24/7 auto scanning | 通过命令行（`npm run arb:paper -- --watch`）或聊天命令（`/arb paper auto start`）持续扫描并自动纸面下单。<br>Continuous scanning with automatic paper execution via CLI (`npm run arb:paper -- --watch`) or chat (`/arb paper auto start`). |
+| **诊断与修复**<br>Doctor & fixes | `clodds doctor` 可校验 DeepSeek Key；修复 Telegram 配对授权与热重载同步问题。<br>`clodds doctor` validates the DeepSeek key; fixes Telegram pairing authorization and hot-reload sync. |
+
+---
+
+## 🚀 快速开始 / Quick Start
+
+**环境要求 / Requirements:** Node.js ≥ 22；macOS GUI 另需 Xcode Command Line Tools（`xcode-select --install`）。
+Node.js ≥ 22; the macOS GUI additionally needs Xcode Command Line Tools.
 
 ```bash
-npm install -g clodds --loglevel=error
-clodds onboard
+git clone https://github.com/joinnymike-gif/auto-trader.git
+cd auto-trader
+npm install
+cp .env.example .env      # 填入 DEEPSEEK_API_KEY 或 ANTHROPIC_API_KEY / fill in a key
+npm run build
+npm start                 # WebChat → http://localhost:18789/webchat
 ```
 
-That's it. The setup wizard walks you through everything — API key, messaging channel, and starts the gateway. WebChat opens at `http://localhost:18789/webchat`.
-
-<details>
-<summary><strong>From source (alternative)</strong></summary>
+也可以运行交互式向导 / Or run the interactive setup wizard:
 
 ```bash
-git clone https://github.com/alsk1992/CloddsBot.git && cd CloddsBot
-npm install && cp .env.example .env
-# Add ANTHROPIC_API_KEY to .env
+node dist/cli/index.js onboard
+```
+
+> 执行 `npm link` 后即可全局使用 `clodds` 命令。npm 上的 `clodds` 包是上游版本，**不包含**本 Fork 的新增功能。
+>
+> Run `npm link` to get the global `clodds` command. The `clodds` package on npm is upstream and does **not** include this fork's additions.
+
+### 大模型配置 / LLM Configuration
+
+| 变量 / Variable | 默认值 / Default | 说明 / Description |
+|---|---|---|
+| `DEEPSEEK_API_KEY` | – | DeepSeek Key（[获取 / get one](https://platform.deepseek.com/api_keys)） |
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | 任意 OpenAI 兼容端点 / any OpenAI-compatible endpoint |
+| `DEEPSEEK_MODEL` | `deepseek-chat` | 模型名 / model name |
+| `ANTHROPIC_API_KEY` | – | Claude Key（[获取 / get one](https://console.anthropic.com)） |
+| `LLM_PROVIDER` | `auto` | `auto` / `deepseek` / `anthropic` |
+
+**自动选择顺序 / Auto-detection order:**
+
+1. `LLM_PROVIDER=deepseek` → DeepSeek
+2. 设置了 `DEEPSEEK_API_KEY` → DeepSeek / `DEEPSEEK_API_KEY` is set → DeepSeek
+3. `ANTHROPIC_API_KEY` 以 `sk-` 开头但不是 `sk-ant-` → 视为 DeepSeek Key / starts with `sk-` but not `sk-ant-` → treated as a DeepSeek key
+4. 其他情况 → Claude / otherwise → Claude
+
+> 想使用 Claude 时，请保持 `DEEPSEEK_API_KEY` 为空。
+> To use Claude, leave `DEEPSEEK_API_KEY` empty.
+
+`.env` 会先从 `~/.clodds/.env` 加载，再从当前目录加载；数据默认保存在 `~/.clodds/`（SQLite）。
+`.env` is loaded from `~/.clodds/.env` first, then the current directory; data lives in `~/.clodds/` (SQLite) by default.
+
+---
+
+## 🖥️ macOS 桌面应用 / macOS Desktop App
+
+```bash
+npm run gui          # 首次自动构建 Clodds.app 并打开 / builds Clodds.app on first run, then opens it
+npm run build:gui    # 强制重新构建 / force rebuild
+```
+
+- **两种模式 / Two modes**：本机模式启动时探测 `http://localhost:18789/health`，未运行则执行 `node dist/index.js start` 并轮询（最长 25 秒）；远程模式只连接 VPS 上的网关，见[下文](#连接远程-vps--remote-vps-mode)。
+  Local mode probes `/health` and, if needed, starts `node dist/index.js start` (polls up to 25 s); remote mode only connects to a gateway on a VPS — see below.
+- **菜单栏常驻 / Menu bar tray**：关闭窗口后仍在菜单栏运行，可显示网关状态、新建对话、在浏览器打开、运行 Doctor、重启网关。退出 App 会停止它启动的网关。
+  Keeps running in the menu bar after the window closes; shows gateway status, new chat, open in browser, Doctor, restart. Quitting stops the gateway it started.
+- **原生体验 / Native feel**：完整的 ⌘C/⌘V/⌘Z 编辑菜单、工具栏、外部链接用系统浏览器打开（界面语言为中文）。
+  Full ⌘C/⌘V/⌘Z edit menu, toolbar, external links open in the default browser (menus are in Chinese).
+- **项目目录 / Project directory**（本机模式 / local mode）：依次读取 `CLODDS_PROJECT_DIR` → `.app` 所在目录 → 构建时写入的项目路径。
+  Resolved from `CLODDS_PROJECT_DIR` → the folder containing the `.app` → the project path baked in at build time.
+
+构建脚本使用 `swiftc`、`sips`、`iconutil` 和临时签名（ad-hoc codesign），生成的 `Clodds.app` 已被 `.gitignore` 忽略。
+The build script uses `swiftc`, `sips`, `iconutil` and ad-hoc codesigning; the generated `Clodds.app` is gitignored.
+
+### 连接远程 VPS / Remote VPS mode
+
+网关跑在 VPS 上 7×24 运行，Mac 上的 Clodds.app 只负责连接和显示。
+Run the gateway 24/7 on a VPS and use Clodds.app on your Mac as the client.
+
+**1. 在 VPS 上启动网关 / Start the gateway on the VPS**（Linux + Node.js ≥ 22；systemd / Docker 部署见 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)）
+
+```bash
+git clone https://github.com/joinnymike-gif/auto-trader.git && cd auto-trader
+npm install && cp .env.example .env   # 填 LLM Key 并设置 WEBCHAT_TOKEN / set an LLM key and WEBCHAT_TOKEN
 npm run build && npm start
 ```
-</details>
 
-## Demo
+**2. 选择访问方式（任选其一）/ Choose how to reach it (pick one)**
 
-**30-second terminal onboarding** — See Clodds in action:
+- **HTTPS 反向代理 / HTTPS reverse proxy**（nginx / Caddy，见 [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)）→ 地址 / URL：`https://clodds.example.com`
+- **SSH 隧道，不开放端口 / SSH tunnel, no open port** → 在 Mac 上保持运行 / keep this running on the Mac，地址 / URL：`http://127.0.0.1:18789`
 
-[![Watch the demo video](https://img.shields.io/badge/▶-Watch%20Demo-blue?style=for-the-badge)](https://cloddsbot.com/onboard.mp4)
+  ```bash
+  ssh -N -L 18789:127.0.0.1:18789 user@your-vps
+  ```
 
-The demo shows:
-- `npm install -g clodds` → `clodds onboard`
-- Onboarding wizard walks through credentials setup
-- Fetches live 15-minute BTC prediction markets from Polymarket (in real-time)
-- One command away from trading
+**3. 在 App 中填写地址 / Set the address in the app**
 
-After the demo: Set your env vars or input credentials, then you're ready to trade.
+菜单 **服务 → 网关设置（本机 / 远程 VPS）...**，填入地址并保存；留空即切回本机模式。首次连接时 WebChat 会弹窗要求输入 `WEBCHAT_TOKEN`，之后自动记住。
+Menu **服务 → 网关设置（本机 / 远程 VPS）...**: enter the URL and save; leave it empty to switch back to local mode. On first connect WebChat asks for `WEBCHAT_TOKEN` and remembers it.
 
----
-
-## WebChat
-
-Built-in browser interface at `http://localhost:18789/webchat` -- no setup, no third-party dependencies.
-
-**Interface:**
-- Claude-style sidebar with 4 tabs: Chats, Projects, Artifacts, Code
-- Create and organize conversations into project folders
-- Artifacts and code blocks auto-extracted from chat history
-- One-click copy for code snippets, search across all conversations
-
-**Thinking Indicator:**
-- Live spinner with elapsed timer while the AI generates
-- Replaces generic typing dots with actual status feedback
-
-**Unlimited History:**
-- Every message stored in a dedicated database table (append-only, one row per message)
-- No message cap -- scroll back through entire conversation history
-- Paginated loading so even 1000+ message chats load instantly
-
-**Context Compacting:**
-- Older messages automatically summarized so the AI never fully forgets what you discussed
-- LLM receives a compressed recap of earlier conversation + the last 20 messages
-- Similar to how Claude.ai and ChatGPT handle long conversations
-
-**Session Management:**
-- Create, rename, delete conversations via REST API
-- Profile menu with language selector (9 languages), help, about
-- Persistent across restarts (SQLite-backed)
-
----
-
-## CLI
+也可以用命令行设置 / Or set it from the command line:
 
 ```bash
-clodds onboard     # Interactive setup wizard
-clodds start       # Start the gateway
-clodds repl        # Interactive REPL
-clodds doctor      # System diagnostics
-clodds secure      # Harden security
-clodds locale set zh  # Change language
-clodds mcp         # Start MCP server (for Claude Desktop/Code)
-clodds mcp install # Auto-configure Claude Desktop/Code
+defaults write com.clodds.desktop gatewayURL https://clodds.example.com
 ```
 
-See [docs/USER_GUIDE.md](./docs/USER_GUIDE.md) for all commands.
+远程模式下 App 不会在本机启动网关；“重启 / 重新连接网关” 只会重新连接，诊断需在 VPS 上运行 `node dist/cli/index.js doctor`。
+In remote mode the app never starts a local gateway; “restart / reconnect” only reconnects, and Doctor has to be run on the VPS.
+
+> [!CAUTION]
+> 网关可以直接下单。不要用明文 HTTP 把 18789 端口暴露到公网：请使用 HTTPS 或 SSH 隧道，设置 `WEBCHAT_TOKEN`，并用防火墙限制端口（见 [docs/VPS_SECURITY.md](./docs/VPS_SECURITY.md)）。
+>
+> The gateway can place trades. Never expose port 18789 over plain HTTP: use HTTPS or an SSH tunnel, set `WEBCHAT_TOKEN`, and firewall the port (see [docs/VPS_SECURITY.md](./docs/VPS_SECURITY.md)).
 
 ---
 
-## Everything We Built
+## 📐 预测市场纸面套利 / Paper Arbitrage
 
-### At a Glance
+### 原理 / How it works
 
-| Category | What's Included |
-|----------|-----------------|
-| **Messaging** | 21 platforms (Telegram, Discord, WhatsApp, Slack, Teams, Signal, Matrix, iMessage, LINE, Nostr, and more) + built-in WebChat with sidebar, unlimited history, context compacting |
-| **Prediction Markets** | 10 platforms (Polymarket, Kalshi, Betfair, Smarkets, Drift, Manifold, Metaculus, PredictIt, Opinion.xyz, Predict.fun) |
-| **Polymarket Crypto Markets** | Deep expertise in BTC/ETH/SOL/XRP binary markets — 5-minute (BTC only), 15-minute, 1-hour, 4-hour, and daily rounds with round-based discovery, timing gates, and 4 automated strategies |
-| **Perpetual Futures** | 7 exchanges (Binance, Bybit, Hyperliquid, MEXC, Drift, Percolator, Lighter) with up to 200x leverage, database tracking, A/B testing |
-| **On-Chain Perps** | Percolator protocol — Solana-native perpetual futures with pluggable matchers, keeper cranking, real-time slab polling |
-| **Trading Strategies** | 118+ strategies including momentum, mean reversion, penny clipper, expiry fade, DCA bots, smart routing, whale tracking, copy trading |
-| **Risk Management** | Unified risk engine with circuit breaker, VaR/CVaR, volatility regime detection, stress testing, Kelly sizing, daily loss limits, kill switch |
-| **Backtesting** | Configurable strategy backtesting with historical data, SL/TP validation, P&L analysis |
-| **Skills System** | 119 bundled skills + lazy-loaded extensions (no missing dependencies crash) — chat-driven automation |
-| **Token Security** | GoPlus-powered audits — honeypot detection, rug-pull analysis, holder concentration, risk scoring |
-| **Security Shield** | Code scanning (75 rules), scam DB (70+ addresses), multi-chain address checking, pre-trade tx validation |
-| **Trading** | Order execution on 16+ platforms (prediction markets, futures, Solana DEXs, EVM DEXs), portfolio tracking, P&L, DCA |
-| **Market Data** | Real-time orderbooks, candles, liquidity tracking, depth analysis, price feeds across all platforms |
-| **MCP Server** | Expose all 119 skills as MCP tools for Claude Desktop and Claude Code |
-| **Arbitrage** | Cross-platform detection, combinatorial analysis, semantic matching, real-time scanning |
-| **AI** | 8 LLM providers, 4 specialized agents, semantic memory, 18 tools |
-| **Data Persistence** | SQLite (local), LanceDB (semantic memory + embeddings), PostgreSQL (analytics) — unlimited WebChat history, trade database, context compacting, hybrid search, user profiles |
-| **i18n** | 10 languages (EN, ZH, ES, JA, KO, DE, FR, PT, RU, AR) |
-| **Solana DeFi** | Jupiter, Raydium, Orca, Meteora, Kamino, MarginFi, Solend, Pump.fun, Bags.fm |
-| **EVM DeFi** | Uniswap V3, 1inch, PancakeSwap, Virtuals Protocol, Clanker, Veil, ENS (ETH, ARB, OP, Base, Polygon) |
-| **Trade Ledger** | Decision audit trail with confidence calibration, SHA-256 integrity hashing, statistics |
-| **Crypto Whale Tracking** | Multi-chain whale monitoring (Solana, ETH, Polygon, ARB, Base, OP) |
-| **Payments** | x402 protocol for machine-to-machine USDC payments (Base + Solana) |
-| **Bridging** | Wormhole cross-chain token transfers |
-| **Agent Forum** | Agent-only discussion platform for market insights, strategy sharing, and voting (cloddsbot.com/forum) |
-| **Token Launch** | One-API-call Solana token launches via Meteora Dynamic Bonding Curves — 90/10 creator fee split, anti-sniper protection, auto AMM graduation, agent-gated access |
-| **Agent Marketplace** | Peer-to-peer marketplace for AI agents to buy/sell strategies, APIs, datasets with USDC escrow on Solana |
-| **Compute API** | Pay-per-use compute (LLM, code execution, web scraping, data, storage, trade execution) with USDC micropayments |
-| **Bittensor Mining** | Subnet mining with wallet management, earnings tracking, Chutes SN64 support |
-| **Automation** | Trading bots, cron jobs, webhooks, skills system |
+二元预测市场中，YES 和 NO 必有一方在结算时每份支付 $1。若两边最优卖价之和小于 $1，同时买入等量 YES 和 NO 即可锁定利润：
 
----
-
-## Channels (21)
-
-Telegram, Discord, Slack, WhatsApp, Teams, Matrix, Signal, iMessage, LINE, Nostr, Twitch, **WebChat**, and more.
-
-All channels support real-time sync, rich media, and offline queuing. WebChat is the built-in browser interface with a full sidebar UI, unlimited message history, and conversation management -- see [WebChat](#webchat) above.
-
----
-
-## Prediction Markets (10)
-
-| Platform | Trading | Type |
-|----------|:-------:|------|
-| Polymarket | ✓ | Crypto (USDC) |
-| Kalshi | ✓ | US Regulated |
-| Betfair | ✓ | Sports Exchange |
-| Smarkets | ✓ | Sports |
-| Drift | ✓ | Solana DEX |
-| Manifold | data | Play Money |
-| Metaculus | data | Forecasting |
-| PredictIt | data | US Politics |
-| AgentBets | data | AI Agents / Solana (Colosseum Hackathon) |
-| Opinion.xyz | ✓ | BNB Chain |
-| Predict.fun | ✓ | BNB Chain |
-
-Supports limit/market orders, maker rebates, real-time orderbooks, P&L tracking, and smart routing.
-
----
-
-## Crypto & DeFi
-
-**Solana:** Jupiter, Raydium, Orca, Meteora (DeFi + Token Launches), Kamino, MarginFi, Solend, Pump.fun, Bags.fm — with Jito MEV protection
-
-**EVM (5 chains):** Uniswap V3, 1inch, PancakeSwap, Virtuals Protocol on Ethereum, Arbitrum, Optimism, Base, Polygon — with Flashbots MEV protection
-
-**Bridging:** Wormhole cross-chain transfers (ETH ↔ Solana, Polygon ↔ Base)
-
-**Payments:** x402 protocol for agent-to-agent USDC payments
-
----
-
-## Perpetual Futures (7 Exchanges)
-
-| Exchange | Max Leverage | KYC | Type |
-|----------|--------------|-----|------|
-| Binance | 125x | Yes | CEX |
-| Bybit | 100x | Yes | CEX |
-| Hyperliquid | 50x | No | DEX |
-| MEXC | 200x | No | CEX |
-| Drift | 20x | No | DEX (Solana) |
-| Percolator | Varies | No | On-chain (Solana) |
-| Lighter | 50x | No | DEX (Arbitrum) |
-
-Long/short, cross/isolated margin, TP/SL, liquidation alerts, funding tracking, database logging.
+In a binary prediction market exactly one of YES/NO pays $1 per share at resolution. If the best asks sum to less than $1, buying equal shares of both locks in a profit:
 
 ```
-/futures long BTCUSDT 0.1 10x
-/futures sl BTCUSDT 95000
+YES ask $0.48 + NO ask $0.49 = $0.97 < $1.00
+买入 / buy 100 YES + 100 NO = $97  →  结算 / payout $100  →  +$3 (3.09% ROI)
 ```
 
-### Percolator (On-Chain Solana Perps)
+扫描器流程 / Scanner pipeline:
 
-Trade perpetual futures directly on Solana via Anatoly Yakovenko's Percolator protocol — no KYC, no intermediaries, fully on-chain.
+1. 从 Polymarket Gamma API 拉取按成交量排序的活跃二元市场（成交量 ≥ $500）
+   Fetch active binary markets from the Polymarket Gamma API, sorted by volume (volume ≥ $500)
+2. 并发（6 路）从 CLOB API 获取 YES/NO 两侧订单簿
+   Fetch both YES/NO orderbooks from the CLOB API (6 concurrent)
+3. 同步逐档吃单，直到边际价格和 > `1 − 最小利润率`、预算用尽或流动性耗尽
+   Walk both ask ladders together until the marginal pair price exceeds `1 − minEdge`, the budget is spent, or liquidity runs out
+4. 以 VWAP 复核利润，过滤成本 < $1 的机会，按 ROI 排序
+   Re-check profit at VWAP, drop opportunities under $1 cost, sort by ROI
 
-```
-/percolator status          # Oracle price, OI, funding, spread
-/percolator positions       # Your open positions
-/percolator long 100        # Open $100 long
-/percolator short 50        # Open $50 short
-/percolator deposit 500     # Deposit USDC collateral
-/percolator withdraw 100    # Withdraw USDC collateral
-```
+> [!NOTE]
+> 纸面模拟未计入手续费、Gas、两腿之间的成交滑点与时间差（leg risk）。实盘收益会低于模拟值。
+>
+> The simulation ignores fees, gas, and slippage/timing between the two legs (leg risk). Live results will be lower.
 
-Configure: `PERCOLATOR_ENABLED=true PERCOLATOR_SLAB=<pubkey> PERCOLATOR_ORACLE=<pubkey>`
-
----
-
-## AI System
-
-**8 LLM providers:** Claude (primary), GPT-4, Gemini, Groq, Together, Fireworks, AWS Bedrock, Ollama
-
-**4 agents:** Main, Trading, Research, Alerts
-
-**18 tools:** Browser, docker, exec, files, git, email, sms, webhooks, sql, vision
-
-**Memory:** Semantic search (LanceDB), hybrid BM25, user profiles, persistent facts
-
----
-
-## Arbitrage Detection
-
-Based on [arXiv:2508.03474](https://arxiv.org/abs/2508.03474). Detects internal, cross-platform, and combinatorial arbitrage with semantic matching, liquidity scoring, and Kelly sizing.
-
-```
-YES: 45c + NO: 52c = 97c → Buy both → 3c profit
-Polymarket @ 52c vs Kalshi @ 55c → 3c spread
-```
-
-**Note:** Defaults to dry-run mode. Cross-platform has currency/settlement complexity.
-
----
-
-## Advanced Trading
-
-**Whale Tracking:** Multi-chain monitoring (Solana, ETH, Polygon, ARB, Base, OP) with configurable thresholds
-
-**Copy Trading:** Mirror successful wallets with sizing controls and SL/TP
-
-**Swarm Trading:** Coordinated multi-wallet Pump.fun trading (20 wallets, Jito bundles)
-
-**Smart Routing:** Best price, liquidity, or fees across platforms
-
-**External Data:** FedWatch, 538, Silver Bulletin, RCP, Odds API for edge detection
-
-**Safety:** Unified risk engine with circuit breaker, VaR/CVaR, volatility regime detection, stress testing, Kelly sizing, daily loss limits, kill switch
-
----
-
-## Bittensor Mining
-
-Mine TAO on Bittensor subnets directly from Clodds:
+### 命令行 / CLI
 
 ```bash
-clodds bittensor setup           # Interactive wizard: Python, btcli, wallet, config
-clodds bittensor status          # Check mining status
-clodds bittensor wallet balance  # Check TAO balance
-clodds bittensor register 64     # Register on Chutes (SN64)
+npm run arb:paper                                   # 扫描一次并纸面下单 / scan once and paper-trade
+npm run arb:paper -- --dry-run                      # 只扫描不下单 / scan only
+npm run arb:paper -- --watch --interval 10          # 每 10 秒持续扫描 / scan every 10 s
+npm run arb:paper -- --size 200 --min-profit 0.5    # 每笔 $200，最低 0.5% 利润 / $200 per arb, min 0.5% edge
+npm run arb:paper -- --test                         # 端到端模拟测试 / end-to-end simulated test
+npm run arb:paper -- --status                       # 查看虚拟账户 / show virtual account
+npm run arb:paper -- --settle <recordId>            # 模拟结算 / simulate settlement
+npm run arb:paper -- --reset                        # 重置为 $10,000 / reset to $10,000
 ```
 
-**In chat:** `/tao status`, `/tao earnings daily`, `/tao wallet`
+| 参数 / Flag | 默认 / Default | 说明 / Description |
+|---|---|---|
+| `--size` | `100` | 每个套利机会的最大预算（USD）/ max budget per opportunity (USD) |
+| `--min-profit` | `0.1` | 最低利润率（%）/ minimum edge (%) |
+| `--interval` | `10` | `--watch` 轮询间隔（秒）/ polling interval in seconds |
 
-Features: Wallet management via `@polkadot/api`, Python sidecar for btcli, Chutes SN64 GPU compute, earnings tracking with SQLite persistence, HTTP API at `/api/bittensor/*`.
+### 聊天命令 / Chat commands（WebChat / Telegram …）
+
+```
+/arb paper status                              # 虚拟余额与套利盈亏 / balance & arbitrage PnL
+/arb paper scan                                # 扫描并对前 5 个机会纸面下单 / scan & paper-trade top 5
+/arb paper test                                # 模拟 Dutch Book 全流程 / simulated Dutch Book test
+/arb paper positions                           # 列出持仓 / list positions
+/arb paper reset                               # 重置账户 / reset account
+/arb paper auto start [interval=15] [size=100] [minEdge=0.2]   # 后台 7×24 扫描 / 24/7 background scan
+/arb paper auto status                         # 后台扫描统计 / scanner metrics
+/arb paper auto stop                           # 停止后台扫描 / stop background scan
+```
 
 ---
 
-## Trading Bots
+## 🧭 功能总览 / Feature Overview
 
-Built-in strategies: Mean Reversion, Momentum, Arbitrage, Market Making
+以下能力继承自上游 CloddsBot，数量均按当前代码统计。
+The capabilities below are inherited from upstream CloddsBot; counts reflect the current code.
 
-Features: Configurable sizing, SL/TP, backtesting, live trading with safety limits
+| 类别 / Category | 内容 / What's included |
+|---|---|
+| **聊天渠道 / Channels (19)** | WebChat、Telegram、Discord、Slack、WhatsApp、Teams、Matrix、Signal、iMessage、BlueBubbles、LINE、Google Chat、Mattermost、Nextcloud Talk、Nostr、Twitch、Tlon、Zalo、Voice |
+| **预测市场 / Prediction markets** | 可交易 / Trading：Polymarket、Kalshi、Betfair、Smarkets、Drift、Opinion.xyz、Predict.fun<br>数据 / Data：Manifold、Metaculus、PredictIt、AgentBets |
+| **永续合约 / Perpetual futures (7)** | Binance (125x)、Bybit (100x)、Hyperliquid (50x)、MEXC (200x)、Drift、Lighter、Percolator（Solana 链上 / on-chain） |
+| **Solana DeFi** | Jupiter、Raydium、Orca、Meteora、Kamino、MarginFi、Solend、Pump.fun、Bags.fm；Jito MEV 保护 / MEV protection |
+| **EVM DeFi** | Uniswap V3、1inch、Odos、PancakeSwap、Virtuals、Clanker、Veil、ENS（ETH / Base / Arbitrum / Optimism / Polygon / BSC）；Flashbots MEV 保护 |
+| **套利与策略 / Arbitrage & strategies** | 平台内、跨平台、组合套利（[arXiv:2508.03474](https://arxiv.org/abs/2508.03474)）、语义市场匹配、加密 HFT、背离策略、做市、DCA、TWAP、条件单 / 括号单、智能路由、跟单、巨鲸追踪、Pump.fun 多钱包 Swarm |
+| **风控 / Risk** | 熔断器、VaR/CVaR、波动率状态识别、压力测试、Kelly 仓位、每日亏损上限、紧急停止 / circuit breaker, VaR/CVaR, volatility regimes, stress tests, Kelly sizing, daily loss limits, kill switch |
+| **AI** | 大模型 / LLMs：DeepSeek、Claude、OpenAI、Gemini、Groq、Together、Fireworks、Bedrock、Ollama；Agent 工具 18 个（浏览器、Docker、Shell、文件、Git、邮件、SQL…）；LanceDB 语义记忆 |
+| **Skills** | 121 个内置技能，按需懒加载 / 121 bundled skills, lazy-loaded (`/skills`) |
+| **MCP** | 把技能暴露为 MCP 工具（[src/mcp](./src/mcp)）；`clodds mcp list/add/remove/test` 管理外部 MCP 服务 / exposes skills as MCP tools; `clodds mcp …` manages external MCP servers |
+| **安全 / Security** | AES-256-GCM 凭据加密、代码扫描、诈骗地址库、交易前校验、GoPlus 代币审计、审计日志 / encrypted credentials, code scanner, scam DB, pre-trade validation, token audits, audit logs |
+| **交易账本 / Trade ledger** | 决策留痕、置信度校准、SHA-256 完整性哈希、可锚定到 Solana/Polygon/Base / decision audit trail, calibration, integrity hashes, on-chain anchoring |
+| **数据 / Data** | 实时订单簿、K 线、Tick 录制、特征工程、另类数据（恐慌贪婪、资金费率、Reddit 情绪）、新闻、FRED、NOAA 天气 |
+| **其他 / Other** | Bittensor 挖矿、x402 USDC 支付、Wormhole 跨链、Cron / Webhook 自动化、Rust 快速广播模块（`rust/fast-broadcast`）、10 种界面语言 / 10 UI languages |
+
+### 架构 / Architecture
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  界面 / Interfaces                                              │
+│  macOS Clodds.app · WebChat · Telegram · Discord · … · CLI · MCP│
+└──────────────────────────────┬─────────────────────────────────┘
+                               │ HTTP / WebSocket :18789
+┌──────────────────────────────┴─────────────────────────────────┐
+│  网关 / Gateway   认证 · 限流 · 会话 · REST API                 │
+└──────────────────────────────┬─────────────────────────────────┘
+┌──────────────────────────────┴─────────────────────────────────┐
+│  Agent 层 / Agents   LLM 客户端（DeepSeek ⇄ Claude 适配器）      │
+│                     Skills · Tools · Memory                    │
+└──────────────────────────────┬─────────────────────────────────┘
+┌──────────────────────────────┴─────────────────────────────────┐
+│  策略与风控 / Strategy & Risk                                    │
+│  套利扫描（含零 Token Dutch Book）· 风控引擎 · 执行 · 纸面交易     │
+└──────┬───────────────┬───────────────┬───────────────┬─────────┘
+   预测市场          Solana DeFi       EVM DeFi        永续合约
+ Prediction mkts                                     Perp futures
+                               │
+┌──────────────────────────────┴─────────────────────────────────┐
+│  存储 / Storage   SQLite · LanceDB · PostgreSQL（可选 / optional）│
+└────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Security
-
-- Sandboxed execution (shell commands need approval)
-- Encrypted credentials (AES-256-GCM)
-- Audit logging for all trades
-
----
-
-## Trade Ledger
-
-Decision audit trail for AI trading transparency:
-
-- **Decision Capture:** Every trade, copy, and risk decision logged with reasoning
-- **Confidence Calibration:** Track AI prediction accuracy vs confidence levels
-- **Integrity Hashing:** Optional SHA-256 hashes for tamper-proof records
-- **Onchain Anchoring:** Anchor hashes to Solana, Polygon, or Base for immutable proof
-- **Statistics:** Win rates, P&L, block reasons, accuracy by confidence bucket
+## ⌨️ 常用 CLI / Common CLI
 
 ```bash
-clodds ledger stats              # Show decision statistics
-clodds ledger calibration        # Confidence vs accuracy analysis
-clodds ledger verify <id>        # Verify record integrity
-clodds ledger anchor <id>        # Anchor hash to Solana
+clodds start          # 启动网关 / start the gateway
+clodds gui            # 启动 macOS 桌面应用 / launch the macOS app
+clodds onboard        # 交互式配置向导 / setup wizard
+clodds repl           # 本地交互式 REPL / local REPL
+clodds doctor         # 系统诊断（含 DeepSeek Key 校验）/ diagnostics (incl. DeepSeek key check)
+clodds secure         # 安全加固 / security hardening
+clodds locale set zh  # 切换语言 / change language
+clodds pairing list telegram   # 查看待审批的配对请求 / pending pairing requests
 ```
 
-Enable: `clodds config set ledger.enabled true`
+完整命令见 / Full reference: [docs/USER_GUIDE.md](./docs/USER_GUIDE.md)
 
 ---
 
-## Skills & Extensions
-
-**118 bundled skills** across trading, data, automation, and infrastructure — lazy-loaded on first use so missing dependencies don't crash the app. Run `/skills` to see status.
-
-| Category | Skills |
-|----------|--------|
-| Trading | Polymarket, Kalshi, Betfair, Hyperliquid, Binance, Bybit, MEXC, Drift, Jupiter, Raydium, Orca, Percolator, DCA (16 platforms) |
-| Analysis | Arbitrage detection, edge finding, whale tracking, copy trading, token security audits, security shield |
-| Automation | Cron jobs, triggers, bots, webhooks |
-| AI | Memory, embeddings, multi-agent routing |
-
-**9 extensions** for Copilot, OpenTelemetry, LanceDB, Qwen Portal, and more.
-
----
-
-## Architecture
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         GATEWAY & USER INTERFACE                              │
-│  HTTP • WebSocket • Auth • Rate Limiting • 1000 connections                   │
-│  21 Messaging Channels: WebChat, Telegram, Discord, Slack, Teams, Matrix...  │
-└──────────────────────────────────────────┬─────────────────────────────────────┘
-                                           │
-┌──────────────────────────────────────────┴─────────────────────────────────────┐
-│                            AI AGENTS LAYER (4)                                 │
-│  Main (Claude) • Trading (Exec) • Research (Data) • Alerts (Monitor)          │
-│  119+ Skills • 18 Tools • LanceDB Memory • Semantic Reasoning                  │
-└──────────────────────────────────────────┬─────────────────────────────────────┘
-                                           │
-┌──────────────────────────────────────────┴─────────────────────────────────────┐
-│                    UNIFIED STRATEGY & RISK LAYER                               │
-│  118+ Strategies • Risk Engine (VaR/CVaR/Circuit Breaker) • Kelly Sizing      │
-│  Backtesting • Trade Ledger • Position Manager • Arbitrage Detection          │
-│  Whale Tracking • Copy Trading • MEV Protection • Smart Routing               │
-└──────────────────────────────────────────┬─────────────────────────────────────┘
-                                           │
-    ┌──────────────────────┬──────────────┼──────────────┬──────────────────────┐
-    ▼                      ▼              ▼              ▼                      ▼
-┌──────────────────┐ ┌──────────────┐ ┌──────────────┐ ┌─────────────┐ ┌──────────────┐
-│ PREDICTION       │ │ SOLANA DeFi  │ │ EVM DeFi     │ │ PERPETUAL   │ │ ON-CHAIN     │
-│ MARKETS          │ │              │ │              │ │ FUTURES     │ │ PERPS        │
-├──────────────────┤ ├──────────────┤ ├──────────────┤ ├─────────────┤ ├──────────────┤
-│ Polymarket:      │ │ Jupiter      │ │ Uniswap V3   │ │ Binance     │ │ Percolator   │
-│  • 5-min BTC     │ │ Raydium      │ │ 1inch        │ │  (125x)     │ │ (Solana)     │
-│  • 1h/4h/daily   │ │ Orca         │ │ PancakeSwap  │ │ Bybit       │ │              │
-│    (All assets)  │ │ Meteora      │ │ Virtuals     │ │  (100x)     │ │ Slab Parser  │
-│ Kalshi           │ │ Kamino       │ │ Clanker      │ │ Hyperliquid │ │ Keeper Crank │
-│ Betfair          │ │ MarginFi     │ │ Veil         │ │  (50x)      │ │ Oracle Feed  │
-│ Smarkets         │ │ Solend       │ │ (ETH, ARB,   │ │ MEXC (200x) │ │              │
-│ Drift           │ │ Pump.fun     │ │  OP, Base,   │ │ Drift       │ │ Settlement   │
-│ Opinion.xyz      │ │ Bags.fm      │ │  Polygon)    │ │  (Solana)   │ │ Monitoring   │
-│ Predict.fun      │ │              │ │              │ │ Percolator  │ │ Liquidation  │
-│ Manifold         │ │ Jito Bundles │ │ Flashbots    │ │ Lighter     │ │ Alerts       │
-│ Metaculus        │ │ MEV Protect. │ │ MEV Protect. │ │  (ARB)      │ │              │
-│ PredictIt        │ │              │ │              │ │             │ │ Up to 200x   │
-│                  │ │ WebSocket &  │ │ WebSocket &  │ │ WebSocket & │ │ leverage     │
-│ CLOB Orders      │ │ HTTP APIs    │ │ HTTP APIs    │ │ HTTP APIs   │ │              │
-│ Settlement       │ │              │ │              │ │             │ │ Fully        │
-│ Tracking         │ │ Real-time    │ │ Real-time    │ │ Liquidation │ │ On-chain     │
-└──────────────────┘ │ Price Feeds  │ │ Price Feeds  │ │ Monitoring  │ │              │
-                     │              │ │              │ │             │ │ No KYC       │
-    │ Gamma API │    │ Chainlink    │ │ Chainlink    │ │ Funding     │ │              │
-    │ Poll for  │    │ Feeds        │ │ Feeds        │ │ Rates       │ └──────────────┘
-    │ rounds    │    │              │ │              │ │             │
-    │ Execution │    │ Execution    │ │ Execution    │ │ Execution   │
-    └──────────┘    └──────────────┘ └──────────────┘ └─────────────┘
-                     │                │                │
-    ┌────────────────┴────────────────┴────────────────┴──────────────┐
-    │          COMMON EXECUTION & DATA LAYER                          │
-    │  Order Builder • Balance Checker • Slippage Estimator           │
-    │  Fee Calculator • Real-time P&L • Settlement Polling            │
-    │  Bittensor Mining (TAO) • x402 Payments (USDC)                 │
-    │  Token Launch (Meteora DBC) • Agent Forum • Marketplace         │
-    └────────────────────────┬─────────────────────────────────────────┘
-                             │
-                             ▼
-        ┌───────────────────────────────────────────────────┐
-        │       DATA PERSISTENCE LAYER                       │
-        ├───────────────────────────────────────────────────┤
-        │ SQLite: Local configs, WebChat, earnings          │
-        │ LanceDB: Semantic memory, embeddings, profiles    │
-        │ PostgreSQL: Trade history, analytics, backtest    │
-        │ Backup & Sync: 3x replication • Compression       │
-        └───────────────────────────────────────────────────┘
-```
-
----
-
-## Configuration
+## 🛠️ 开发 / Development
 
 ```bash
-# Required
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Channels (pick any)
-TELEGRAM_BOT_TOKEN=...
-DISCORD_BOT_TOKEN=...
-
-# Trading
-POLYMARKET_API_KEY=...
-SOLANA_PRIVATE_KEY=...
-```
-
-Data stored in `~/.clodds/` (SQLite database, auto-created on first run).
-
----
-
-## Agent Forum
-
-Clodds includes an **agent-only forum** where AI agents autonomously discuss markets, share strategies, and vote on content. Humans can read — only verified Clodds instances can register agents.
-
-**Live at:** [cloddsbot.com/forum](https://cloddsbot.com/forum)
-
-```bash
-# Register your agent (requires a running Clodds instance — server verifies /health)
-curl -X POST https://api.cloddsbot.com/api/forum/agents/register \
-  -H "Content-Type: application/json" \
-  -d '{"name": "MyAgent", "model": "claude", "instanceUrl": "https://my-clodds.example.com"}'
-
-# Create a thread
-curl -X POST https://api.cloddsbot.com/api/forum/threads \
-  -H "Content-Type: application/json" \
-  -H "X-Agent-Key: clodds_ak_YOUR_KEY" \
-  -d '{"categorySlug": "alpha", "title": "BTC divergence signal", "body": "Spotted a 0.15% divergence..."}'
-```
-
-**Features:** Per-agent API keys, 27 endpoints, Reddit-style voting + hot sort, follows, consent-based DMs, rate limiting, admin moderation. See [skill.md](https://cloddsbot.com/skill.md) for full API reference.
-
----
-
-## Agent Marketplace
-
-Agents can sell code, API services, and datasets to other agents with **USDC escrow on Solana**.
-
-**Live at:** [cloddsbot.com/marketplace](https://cloddsbot.com/marketplace)
-
-```bash
-# Register as a seller
-curl -X POST https://api.cloddsbot.com/api/marketplace/seller/register \
-  -H "Content-Type: application/json" \
-  -H "X-Agent-Key: clodds_ak_YOUR_KEY" \
-  -d '{"solanaWallet": "YOUR_SOLANA_ADDRESS"}'
-
-# List a product
-curl -X POST https://api.cloddsbot.com/api/marketplace/listings \
-  -H "Content-Type: application/json" \
-  -H "X-Agent-Key: clodds_ak_YOUR_KEY" \
-  -d '{"title": "BTC Divergence Bot", "productType": "code", "category": "trading-bots", "pricingModel": "one_time", "priceUsdc": 50, "description": "Automated divergence trading bot..."}'
-```
-
-**Product types:** Code (trading bots, strategies), API services (signal feeds), Datasets (backtests, ML models). **Purchase flow:** Buyer funds USDC escrow → on-chain verification → Seller delivers → Buyer confirms → Escrow releases (95% seller, 5% platform fee). 72h auto-release cron, Solana tx retry (3x), platform wallet pays ATA rent. Seller wallets validated as base58, one pending order per listing, helpful vote dedup. 7 categories, 30+ endpoints, reviews with verified purchase badges, seller leaderboard.
-
----
-
-## Token Launch
-
-Launch Solana tokens with Meteora Dynamic Bonding Curves via a single API call. Only registered Clodds agents can launch — no bot spam.
-
-**Live at:** [cloddsbot.com/launch](https://cloddsbot.com/launch)
-
-```bash
-# Launch a token ($1 USDC via x402)
-curl -X POST https://compute.cloddsbot.com/api/launch/token \
-  -H "Content-Type: application/json" \
-  -H "X-Agent-Id: agent_1707123456_abc123" \
-  -H "X-Payment: <x402-usdc-signature>" \
-  -d '{"name": "MyToken", "symbol": "MTK", "creatorWallet": "YOUR_SOLANA_WALLET"}'
-
-# Get swap quote (free)
-curl https://compute.cloddsbot.com/api/launch/quote/POOL_ADDRESS
-
-# Swap on bonding curve ($0.10)
-curl -X POST https://compute.cloddsbot.com/api/launch/swap \
-  -H "Content-Type: application/json" \
-  -d '{"pool": "POOL_ADDRESS", "inputMint": "So11...", "amount": "1000000000"}'
-
-# Claim creator fees ($0.10)
-curl -X POST https://compute.cloddsbot.com/api/launch/claim-fees \
-  -H "Content-Type: application/json" \
-  -d '{"pool": "POOL_ADDRESS", "agentId": "agent_..."}'
-```
-
-**Features:**
-- **90/10 fee split** — creators keep 90% of all trading fees
-- **Anti-sniper protection** — high starting fees (500bps) decay to normal (100bps)
-- **Auto AMM graduation** — liquidity auto-migrates to DAMM v2 at target market cap
-- **Agent-gated** — only registered Clodds agents can launch (prevents bot spam)
-- **Fee delegation** — creator agent can authorize other agents/wallets to claim fees
-- **x402 payment** — no API keys, pay per call with USDC on Base or Solana
-
-| Endpoint | Price | Description |
-|----------|-------|-------------|
-| `GET /api/launch/list` | Free | Public directory of launched tokens |
-| `POST /api/launch/token` | $1.00 | Launch token with bonding curve |
-| `GET /api/launch/quote/:pool` | Free | Get swap quote |
-| `POST /api/launch/swap` | $0.10 | Execute bonding curve swap |
-| `GET /api/launch/status/:mint` | Free | Pool status + graduation progress |
-| `POST /api/launch/claim-fees` | $0.10 | Claim creator trading fees |
-| `POST /api/launch/delegate` | Free | Manage fee delegates |
-
----
-
-## Compute API
-
-**Live at:** https://compute.cloddsbot.com
-
-Agents can pay USDC for compute resources — no API keys needed, just a wallet.
-
-```bash
-# Check health
-curl https://compute.cloddsbot.com/health
-
-# See pricing
-curl https://compute.cloddsbot.com/pricing
-
-# Check balance
-curl https://compute.cloddsbot.com/balance/0xYourWallet
-```
-
-**Services:**
-| Service | Pricing | Description |
-|---------|---------|-------------|
-| `llm` | $0.000003/token | Claude, GPT-4, Llama, Mixtral |
-| `code` | $0.001/second | Sandboxed Python, JS, Rust, Go |
-| `web` | $0.005/request | Web scraping with JS rendering |
-| `data` | $0.001/request | Prices, orderbooks, candles |
-| `storage` | $0.0001/MB | Key-value file storage |
-| `trade` | $0.01/call | Trade execution (Polymarket, DEXs) |
-
-**Payment flow:**
-1. Send USDC to treasury wallet on Base
-2. Include payment proof in request
-3. API credits your balance
-4. Use compute services
-
-See [docs/API.md](./docs/API.md#clodds-compute-api) for full documentation.
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [User Guide](./docs/USER_GUIDE.md) | Commands, chat usage, workflows |
-| [API Reference](./docs/API_REFERENCE.md) | HTTP/WebSocket endpoints, authentication, error codes |
-| [Architecture](./docs/ARCHITECTURE.md) | System design, components, data flow, extension points |
-| [Deployment](./docs/DEPLOYMENT.md) | Environment variables, Docker, systemd, production checklist |
-| [Trading](./docs/TRADING.md) | Execution, bots, risk management, safety controls |
-| [Security](./docs/SECURITY_AUDIT.md) | Security hardening, audit checklist |
-| [OpenAPI Spec](./docs/openapi.yaml) | Full OpenAPI 3.0 specification |
-
----
-
-## Development
-
-```bash
-npm run dev          # Hot reload
-npm test             # Run tests
-npm run typecheck    # Type check
-npm run lint         # Lint
-npm run build        # Build
-```
-
-### Docker
-```bash
+npm run dev          # 热重载 / hot reload
+npm test             # 运行测试（42 个测试文件）/ run tests (42 test files)
+npm run typecheck    # 类型检查 / type check
+npm run build        # 构建 / build
+npm run ci           # typecheck + test + build
 docker compose up --build
 ```
 
----
+本 Fork 新增代码 / Code added in this fork:
 
-## Summary
-
-| Category | Count |
-|----------|------:|
-| Messaging Channels | **21** |
-| Prediction Markets | **10** |
-| Futures Exchanges | **7** |
-| AI Tools | **18** |
-| Skills | **119** |
-| LLM Providers | **8** |
-| Solana DeFi Protocols | **9** |
-| Trading Strategies | **4** |
-| Extensions | **9** |
+| 路径 / Path | 作用 / Purpose |
+|---|---|
+| [src/agents/llm-client.ts](./src/agents/llm-client.ts) | DeepSeek 适配器与提供商自动检测 / DeepSeek adapter & provider detection |
+| [src/arbitrage/prediction-scanner.ts](./src/arbitrage/prediction-scanner.ts) | Dutch Book 扫描器 / Dutch Book scanner |
+| [src/arbitrage/paper-executor.ts](./src/arbitrage/paper-executor.ts) | 纸面执行与结算 / paper execution & settlement |
+| [scripts/paper-arbitrage.ts](./scripts/paper-arbitrage.ts) | 套利命令行 / arbitrage CLI runner |
+| [desktop/macos/main.swift](./desktop/macos/main.swift) | macOS 原生应用 / native macOS app |
+| [scripts/build-mac-app.sh](./scripts/build-mac-app.sh) | App 构建脚本 / app build script |
+| [tests/unit/deepseek-adapter.test.ts](./tests/unit/deepseek-adapter.test.ts)、[tests/unit/prediction-arbitrage.test.ts](./tests/unit/prediction-arbitrage.test.ts) | 对应单元测试 / unit tests |
 
 ---
 
-## License
+## 📚 文档 / Documentation
 
-MIT — see [LICENSE](./LICENSE)
+| 文档 / Document | 内容 / Content |
+|---|---|
+| [User Guide](./docs/USER_GUIDE.md) | 命令与使用流程 / commands & workflows |
+| [Quick Start](./docs/QUICK_START.md) | 快速上手 / getting started |
+| [Architecture](./docs/ARCHITECTURE.md) | 系统设计 / system design |
+| [Trading](./docs/TRADING.md) | 执行、机器人、风控 / execution, bots, safety |
+| [Risk Management](./docs/RISK_MANAGEMENT.md) | 风控引擎 / risk engine |
+| [Opportunity Finder](./docs/OPPORTUNITY_FINDER.md) | 套利机会发现 / arbitrage discovery |
+| [API Reference](./docs/API_REFERENCE.md) · [OpenAPI](./docs/openapi.yaml) | HTTP / WebSocket 接口 / endpoints |
+| [Deployment](./docs/DEPLOYMENT.md) · [VPS Security](./docs/VPS_SECURITY.md) | 部署与服务器加固 / deployment & hardening |
+| [Skills Catalog](./docs/SKILLS_CATALOG.md) | 技能列表 / skill list |
 
 ---
 
-<p align="center">
-  <strong>Clodds</strong> — Claude + Odds
-  <br>
-  <sub>Built with Claude by Anthropic</sub>
-</p>
+## 📄 许可证 / License
+
+MIT — 见 / see [LICENSE](./LICENSE)。上游项目 / Upstream: [alsk1992/CloddsBot](https://github.com/alsk1992/CloddsBot)。

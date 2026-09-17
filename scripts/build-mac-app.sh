@@ -37,6 +37,8 @@ mkdir -p "$APP_BUNDLE/Contents/MacOS"
 mkdir -p "$APP_BUNDLE/Contents/Resources"
 
 cp desktop/macos/Info.plist "$APP_BUNDLE/Contents/Info.plist"
+# 写入项目路径：Clodds.app 移动到其他位置后，本机模式仍能找到项目
+plutil -replace CloddsProjectDir -string "$PROJECT_DIR" "$APP_BUNDLE/Contents/Info.plist"
 if [ -f desktop/macos/AppIcon.icns ]; then
     cp desktop/macos/AppIcon.icns "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 fi
